@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Suraj-202211/Modula-Mobile/main/native-launcher/ZalithLauncher/src/main/res/drawable-xxxhdpi/ic_modula_logo.png" width="128" height="128" alt="Modula Mobile Logo" />
   <h1>Modula Mobile</h1>
   <p><strong>144Hz UI • Zero Stutter • Hardware Security</strong></p>
 </div>
