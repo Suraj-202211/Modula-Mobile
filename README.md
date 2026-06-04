@@ -16,7 +16,7 @@ Modula Mobile is an ultra-optimized, native Android launcher for Minecraft. Desi
 ## Installation
 Currently, the project is configured as a Gradle native-launcher alongside a React frontend reference.
 1. Build the APK via `./gradlew assembleDebug`
-2. Install the `ZalithLauncher-debug.apk` output on your device.
+2. Install the `ModulaMobile-debug.apk` output on your device.
 
 ## Credits
 **Powered by Team PixelBuff, Optimized for modula**
