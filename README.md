@@ -1,20 +1,23 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+  <img src="https://raw.githubusercontent.com/Suraj-202211/Modula-Mobile/main/native-launcher/ZalithLauncher/src/main/res/drawable-xxxhdpi/ic_modula_logo.png" width="128" height="128" alt="Modula Mobile Logo" />
+  <h1>Modula Mobile</h1>
+  <p><strong>144Hz UI • Zero Stutter • Hardware Security</strong></p>
 </div>
 
-# Run and deploy your AI Studio app
+## Overview
+Modula Mobile is an ultra-optimized, native Android launcher for Minecraft. Designed with cutting-edge visual fidelity and maximum performance in mind, it utilizes specialized JVM parameters and hardware acceleration to give you the ultimate mobile gaming experience.
 
-This contains everything you need to run your app locally.
+## Features
+- **Engine Metrics & Performance**: Dynamic RAM allocation (up to 16GB) and performance mode for minimum interface lag.
+- **Visual Fidelity**: Customizable UI transparency, particle density, motion interpolation, and dynamic bloom effects.
+- **Advanced Audio**: Integrated Flux Voice Engine, Proximity Chat, and Noise Suppression (coming soon).
+- **Extensive Theming**: Custom-crafted interface themes including Default, Onyx, Volcanic, Neon, and Arctic.
+- **Migration Tools**: Easily import your game data from PojavLauncher, Prism, and SKLauncher.
 
-View your app in AI Studio: https://ai.studio/apps/25d84000-52a3-405e-b6a6-7eb84768b555
+## Installation
+Currently, the project is configured as a Gradle native-launcher alongside a React frontend reference.
+1. Build the APK via `./gradlew assembleDebug`
+2. Install the `ZalithLauncher-debug.apk` output on your device.
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Credits
+**Powered by Team PixelBuff, Optimized for modula**
