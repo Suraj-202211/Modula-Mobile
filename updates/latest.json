@@ -1,0 +1,17 @@
+{
+  "versionCode": 2,
+  "versionName": "1.0.0",
+  "releaseNotes": [
+    "Initial release of Modula Mobile",
+    "Golden Flux UI",
+    "Microsoft and Offline login",
+    "Minecraft Java Edition support",
+    "Mod downloading from Modrinth",
+    "Discord Rich Presence"
+  ],
+  "mandatory": false,
+  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.0/ModulaMobile-v1.0.0.apk",
+  "apkSizeBytes": 352663654,
+  "apkSha256": "A33F0F482820075865BAC358B4BF0304B8BA562E4B6A98E720721B80CFCE5F81",
+  "releaseDate": "2026-06-07"
+}
