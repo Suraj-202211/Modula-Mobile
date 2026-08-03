@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useLauncherStore } from '../../store/launcherStore';
 
 export enum GlassVariant {
@@ -446,5 +446,87 @@ export const FluxLoadingOverlay: React.FC<{ message?: string }> = ({ message }) 
         </motion.p>
       )}
     </div>
+  );
+};
+
+export const FluxModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+  maxWidth?: string;
+}> = ({ isOpen, onClose, title, children, actions, maxWidth = 'max-w-md' }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className={`relative w-full ${maxWidth} glass-dark border border-white/10 rounded-xl overflow-hidden shadow-2xl`}
+          >
+            <div className="p-6">
+              <h2 className="text-lg font-display font-bold text-white mb-4 tracking-wide">{title}</h2>
+              <div className="mb-6 text-sm text-text-primary">
+                {children}
+              </div>
+              {actions && (
+                <div className="flex justify-end gap-3 mt-6">
+                  {actions}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export const FluxInput: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  autoFocus?: boolean;
+  onEnter?: () => void;
+  onEscape?: () => void;
+  className?: string;
+}> = ({ value, onChange, placeholder, autoFocus, onEnter, onEscape, className = '' }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      // Small delay ensures it focuses after modal animation
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [autoFocus]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onEnter) {
+      onEnter();
+    } else if (e.key === 'Escape' && onEscape) {
+      onEscape();
+    }
+  };
+
+  return (
+    <input
+      ref={inputRef}
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={handleKeyDown}
+      placeholder={placeholder}
+      className={`w-full bg-black/40 border border-white/10 focus:border-flux-gold/50 rounded-lg px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors ${className}`}
+    />
   );
 };

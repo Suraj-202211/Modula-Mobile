@@ -73,6 +73,13 @@
   body {
     @apply bg-bg-1 text-text-primary antialiased;
   }
+  
+  /* Smooth theme transitions globally (avoids transform/opacity to prevent framer-motion conflicts) */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
 .glass-ultra-dark {

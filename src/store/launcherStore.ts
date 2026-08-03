@@ -53,6 +53,7 @@ interface Settings {
   fluxVoiceHighBitrate: boolean; // New
   richPresence: boolean;
   performanceMode: boolean; // New setting
+  secureBoot: boolean; // New setting
   lastPlayedVersionId: string;
   lastPlayedLoader: string;
 }
@@ -91,6 +92,7 @@ interface LauncherState {
   loginMicrosoft: (username: string, email: string, uuid: string) => void;
   loginOffline: (username: string) => void;
   logout: () => void;
+  resetSettingsToDefault: () => void;
 }
 
 export const useLauncherStore = create<LauncherState>()(
@@ -135,6 +137,7 @@ export const useLauncherStore = create<LauncherState>()(
         fluxVoiceHighBitrate: true,
         richPresence: true,
         performanceMode: false,
+        secureBoot: true,
         lastPlayedVersionId: '1.20.1',
         lastPlayedLoader: 'vanilla'
       },
@@ -224,6 +227,38 @@ export const useLauncherStore = create<LauncherState>()(
       },
       
       logout: () => set({ user: null, activities: [] }),
+      
+      resetSettingsToDefault: () => set((state) => ({
+        settings: {
+          ...state.settings,
+          ramAllocation: 4096,
+          fpsUnlock: true,
+          jvmArgs: '-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=150',
+          particleIntensity: 60,
+          motionBlur: 80,
+          bloomEffect: true,
+          dynamicShadows: true,
+          transparencyLevel: 10,
+          touchHaptics: true,
+          theme: 'DEFAULT',
+          autoUpdate: true,
+          showFPS: false,
+          uiScaling: 100,
+          language: 'English (US)',
+          debugLogs: false,
+          enableSnapshots: false,
+          lowRamMode: false,
+          batterySaver: false,
+          gpuAcceleration: true,
+          fluxVoiceEnabled: true,
+          fluxVoiceProximity: true,
+          fluxVoiceNoiseSuppression: true,
+          fluxVoiceHighBitrate: true,
+          richPresence: true,
+          performanceMode: false,
+          secureBoot: true
+        }
+      })),
     }),
     {
       name: 'modula-launcher-storage',

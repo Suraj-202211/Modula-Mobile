@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Settings as SettingsIcon, 
@@ -25,27 +25,59 @@ import {
   FluxToggle,
   FluxBadge,
   FluxDivider,
-  FluxSlider
+  FluxSlider,
+  FluxModal,
+  FluxInput
 } from '../components/glass/GlassComponents';
 import { useLauncherStore } from '../store/launcherStore';
 import { AppConfig } from '../config/AppConfig';
 import { useTranslation } from '../lib/translations';
 
 const SettingsScreen: React.FC = () => {
-  const { settings, updateSettings, logout, user } = useLauncherStore();
+  const { settings, updateSettings, logout, user, resetSettingsToDefault } = useLauncherStore();
   const t_fn = useTranslation(settings.language);
 
-  const handleClearCache = () => {
-    if (confirm('Are you sure you want to clear game cache? This will NOT delete worlds or screenshots.')) {
-      alert('Cache cleared successfully!');
+  const [modalConfig, setModalConfig] = useState<{isOpen: boolean, type: 'CACHE' | 'LOGOUT' | 'IMPORT' | 'RESET' | null}>({isOpen: false, type: null});
+  const [importValue, setImportValue] = useState('');
+  
+  const [isEditingJvm, setIsEditingJvm] = useState(false);
+  const [tempJvm, setTempJvm] = useState(settings.jvmArgs);
+
+  // Sync tempJvm if settings change externally
+  useEffect(() => {
+    setTempJvm(settings.jvmArgs);
+  }, [settings.jvmArgs]);
+
+  const closeModal = () => {
+    setModalConfig({ isOpen: false, type: null });
+    setImportValue(''); // reset
+  };
+
+  const handleConfirmAction = () => {
+    switch (modalConfig.type) {
+      case 'CACHE':
+        closeModal();
+        break;
+      case 'IMPORT':
+        if (importValue.trim().length > 0) {
+          closeModal();
+        }
+        break;
+      case 'LOGOUT':
+        logout();
+        closeModal();
+        break;
+      case 'RESET':
+        resetSettingsToDefault();
+        closeModal();
+        break;
     }
   };
 
-  const handleImportLauncher = () => {
-    const launcher = prompt('Enter launcher name to import from (e.g., Pojav, Prism, SKLauncher):');
-    if (launcher) {
-      alert(`Scanning for ${launcher} data... (Simulated)`);
-      setTimeout(() => alert(`Successfully imported profile data from ${launcher}!`), 2000);
+  const openModal = (type: 'CACHE' | 'LOGOUT' | 'IMPORT' | 'RESET') => {
+    setModalConfig({ isOpen: true, type });
+    if (type === 'IMPORT') {
+      setImportValue('My Minecraft Launcher');
     }
   };
 
@@ -198,11 +230,6 @@ const SettingsScreen: React.FC = () => {
               onCheckedChange={(v) => updateSettings({ debugLogs: v })} 
             />
             <FluxToggle 
-              label="Low RAM Mode" 
-              checked={settings.lowRamMode ?? false} 
-              onCheckedChange={(v) => updateSettings({ lowRamMode: v })} 
-            />
-            <FluxToggle 
               label="Battery Saver" 
               checked={settings.batterySaver ?? false} 
               onCheckedChange={(v) => updateSettings({ batterySaver: v })} 
@@ -294,7 +321,7 @@ const SettingsScreen: React.FC = () => {
              label="IMPORT" 
              size="SMALL" 
              className="text-[8px] h-8 px-4"
-             onClick={handleImportLauncher} 
+             onClick={() => openModal('IMPORT')} 
            />
         </div>
       </FluxCard>
@@ -321,7 +348,7 @@ const SettingsScreen: React.FC = () => {
                     <p className="text-[8px] text-white/40 uppercase font-black tracking-widest">Verify file integrity on start</p>
                  </div>
               </div>
-              <FluxToggle label="" checked={true} onCheckedChange={() => {}} />
+              <FluxToggle label="" checked={settings.secureBoot ?? true} onCheckedChange={(v) => updateSettings({ secureBoot: v })} />
            </div>
         </div>
       </FluxCard>
@@ -329,12 +356,46 @@ const SettingsScreen: React.FC = () => {
       {/* JVM Arguments */}
       <FluxCard variant={GlassVariant.DARK} className="space-y-4">
         <FluxSectionHeader title="JVM Parameters" className="mt-0" />
-        <div className="p-4 bg-black/40 rounded-xl border border-white/5 font-mono text-[9px] text-white/50 break-all leading-relaxed relative group">
-          <p className="pr-10">{settings.jvmArgs}</p>
-          <button className="absolute top-4 right-4 p-2 bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-            <SettingsIcon size={12} />
-          </button>
-        </div>
+        
+        {isEditingJvm ? (
+          <div className="space-y-3">
+            <textarea
+              value={tempJvm}
+              onChange={(e) => setTempJvm(e.target.value)}
+              className="w-full h-24 bg-black/40 border border-flux-gold/50 rounded-xl p-4 font-mono text-[10px] text-white/90 outline-none resize-none transition-colors"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <FluxButton 
+                label="CANCEL" 
+                variant="GHOST" 
+                size="SMALL" 
+                onClick={() => {
+                  setTempJvm(settings.jvmArgs);
+                  setIsEditingJvm(false);
+                }} 
+              />
+              <FluxButton 
+                label="SAVE" 
+                size="SMALL" 
+                onClick={() => {
+                  updateSettings({ jvmArgs: tempJvm });
+                  setIsEditingJvm(false);
+                }} 
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-black/40 rounded-xl border border-white/5 font-mono text-[9px] text-white/50 break-all leading-relaxed relative group">
+            <p className="pr-10">{settings.jvmArgs}</p>
+            <button 
+              className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-flux-gold/20 hover:text-flux-gold rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+              onClick={() => setIsEditingJvm(true)}
+            >
+              <SettingsIcon size={12} />
+            </button>
+          </div>
+        )}
         <p className="text-[8px] text-text-muted uppercase tracking-widest font-bold">Optimized for ASM injection</p>
       </FluxCard>
 
@@ -407,23 +468,97 @@ const SettingsScreen: React.FC = () => {
         </div>
       </FluxCard>
 
-      {/* Account Actions */}
-      <div className="space-y-3">
+      {/* Account & System Actions */}
+      <div className="space-y-3 pt-4">
         <FluxButton 
           variant="GHOST"
           label="CLEAR GAME CACHE" 
-          className="w-full border-white/10 text-white/50 font-black tracking-[0.2em]"
-          onClick={handleClearCache}
+          className="w-full border-white/10 text-white/50 hover:text-white hover:border-white/30 font-black tracking-[0.2em]"
+          onClick={() => openModal('CACHE')}
+        />
+        <FluxButton 
+          variant="GHOST"
+          label="RESET SETTINGS TO DEFAULT" 
+          className="w-full border-state-error/30 text-state-error hover:bg-state-error/10 font-black tracking-[0.2em]"
+          onClick={() => openModal('RESET')}
         />
         <FluxButton 
           variant="DANGER"
           label="LOGOUT SESSION" 
-          className="w-full border-state-error/30 text-state-error font-black tracking-[0.2em]"
-          onClick={() => {
-            if (confirm('Log out from Minecraft?')) logout();
-          }}
+          className="w-full font-black tracking-[0.2em]"
+          onClick={() => openModal('LOGOUT')}
         />
       </div>
+
+      {/* Modals */}
+      <FluxModal
+        isOpen={modalConfig.isOpen}
+        onClose={closeModal}
+        title={
+          modalConfig.type === 'CACHE' ? 'Clear Game Cache' :
+          modalConfig.type === 'IMPORT' ? 'Import Launcher Data' :
+          modalConfig.type === 'LOGOUT' ? 'Logout Session' :
+          modalConfig.type === 'RESET' ? 'Reset Settings' : ''
+        }
+        actions={
+          <>
+            <FluxButton label="CANCEL" variant="GHOST" size="SMALL" onClick={closeModal} />
+            <FluxButton 
+              label={
+                modalConfig.type === 'CACHE' ? 'CLEAR' :
+                modalConfig.type === 'IMPORT' ? 'IMPORT' :
+                modalConfig.type === 'LOGOUT' ? 'LOGOUT' :
+                modalConfig.type === 'RESET' ? 'RESET ALL' : 'CONFIRM'
+              } 
+              variant={
+                (modalConfig.type === 'LOGOUT' || modalConfig.type === 'RESET') ? 'DANGER' : 'PRIMARY'
+              } 
+              size="SMALL" 
+              onClick={handleConfirmAction}
+              className={
+                modalConfig.type === 'IMPORT' && importValue.trim().length === 0 
+                  ? 'opacity-50 pointer-events-none' 
+                  : ''
+              }
+            />
+          </>
+        }
+      >
+        {modalConfig.type === 'CACHE' && (
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-flux-amber shrink-0" />
+            <p>Are you sure you want to clear game cache? This will free up storage space but you may experience longer load times initially. This will <strong>NOT</strong> delete worlds or screenshots.</p>
+          </div>
+        )}
+        
+        {modalConfig.type === 'IMPORT' && (
+          <div className="space-y-4">
+            <p>Enter the name of the launcher you want to import data from (e.g., Pojav, Prism, SKLauncher):</p>
+            <FluxInput 
+              value={importValue}
+              onChange={setImportValue}
+              placeholder="e.g. Prism Launcher"
+              autoFocus={true}
+              onEnter={importValue.trim().length > 0 ? handleConfirmAction : undefined}
+              onEscape={closeModal}
+            />
+          </div>
+        )}
+
+        {modalConfig.type === 'LOGOUT' && (
+          <div className="flex items-start gap-3">
+            <LogOut className="text-state-error shrink-0" />
+            <p>Log out from your current Minecraft session? You will need to re-authenticate to play online servers.</p>
+          </div>
+        )}
+
+        {modalConfig.type === 'RESET' && (
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-state-error shrink-0" />
+            <p>Are you absolutely sure? This will wipe all your custom configurations, including JVM arguments, RAM allocation, and visual settings, restoring everything to a clean slate.</p>
+          </div>
+        )}
+      </FluxModal>
 
     </motion.div>
   );
