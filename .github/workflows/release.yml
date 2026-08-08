@@ -109,6 +109,11 @@ jobs:
       # Create GitHub Release
       # ------------------------------------------------------------
 
+      - name: Verify APK exists
+        run: |
+          test -f launcher-v${GITHUB_REF_NAME#v}.apk
+          echo "APK verified"
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
