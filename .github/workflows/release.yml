@@ -17,7 +17,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: recursive
+
+      - name: Manually clone native-launcher
+        run: |
+          rm -rf native-launcher
+          git clone -b bsdiff-test https://github.com/Suraj-202211/ZalithLauncher2.git native-launcher
+          cd native-launcher
+          git checkout cfef38055e16e76ee281fd03a4b20928d22b567b
 
       - name: Set up JDK
         uses: actions/setup-java@v4
