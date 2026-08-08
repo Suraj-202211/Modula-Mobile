@@ -1,0 +1,120 @@
+name: Android Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install patch tools
+        run: pip install bsdiff4
+
+      - name: Grant Gradle permission
+        run: chmod +x gradlew
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+        working-directory: native-launcher
+
+      - name: Rename APK
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          cp native-launcher/ZalithLauncher/build/outputs/apk/release/*.apk \
+             launcher-v${VERSION}.apk
+
+      # ------------------------------------------------------------
+      # Download previous release APK
+      # ------------------------------------------------------------
+
+      - name: Get previous tag
+        id: prev
+        run: |
+          PREV=$(git tag --sort=-creatordate | grep '^v' | grep -v '${GITHUB_REF_NAME}' | head -n 1)
+          echo "prev=$PREV" >> $GITHUB_OUTPUT
+
+      - name: Download previous APK
+        if: steps.prev.outputs.prev != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=${steps.prev.outputs.prev#v}
+          gh release download ${steps.prev.outputs.prev} \
+            --pattern "launcher-v${VERSION}.apk" \
+            --dir previous || echo "Previous release not found or pattern mismatch"
+
+      # ------------------------------------------------------------
+      # Generate bsdiff patch
+      # ------------------------------------------------------------
+
+      - name: Generate patch
+        continue-on-error: true
+        if: steps.prev.outputs.prev != ''
+        run: |
+          NEW=${GITHUB_REF_NAME#v}
+          OLD=${steps.prev.outputs.prev#v}
+          
+          if [ -f "previous/launcher-v${OLD}.apk" ]; then
+            python scripts/generate_patch.py \
+              previous/launcher-v${OLD}.apk \
+              launcher-v${NEW}.apk \
+              launcher-v${OLD}_to_v${NEW}.patch
+          else
+            echo "Previous APK not downloaded, skipping patch generation."
+          fi
+
+      # ------------------------------------------------------------
+      # Generate release.json
+      # ------------------------------------------------------------
+
+      - name: Generate manifest
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          OLD=${steps.prev.outputs.prev#v}
+          
+          PATCH_FILE="launcher-v${OLD}_to_v${VERSION}.patch"
+          if [ ! -f "$PATCH_FILE" ]; then
+            PATCH_FILE="none"
+          fi
+
+          python scripts/create_manifest.py \
+            ${VERSION} \
+            launcher-v${VERSION}.apk \
+            ${PATCH_FILE} \
+            ${{ github.repository }}
+
+      # ------------------------------------------------------------
+      # Create GitHub Release
+      # ------------------------------------------------------------
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            launcher-v*.apk
+            launcher-v*_to_v*.patch
+            release.json
