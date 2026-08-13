@@ -64,8 +64,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=${steps.prev.outputs.prev#v}
-          gh release download ${steps.prev.outputs.prev} \
+          PREV_TAG="${{ steps.prev.outputs.prev }}"
+          VERSION=${PREV_TAG#v}
+          gh release download $PREV_TAG \
             --pattern "launcher-v${VERSION}.apk" \
             --dir previous || echo "Previous release not found or pattern mismatch"
 
@@ -78,7 +79,8 @@ jobs:
         if: steps.prev.outputs.prev != ''
         run: |
           NEW=${GITHUB_REF_NAME#v}
-          OLD=${steps.prev.outputs.prev#v}
+          PREV_TAG="${{ steps.prev.outputs.prev }}"
+          OLD=${PREV_TAG#v}
           
           if [ -f "previous/launcher-v${OLD}.apk" ]; then
             python scripts/generate_patch.py \
@@ -96,7 +98,8 @@ jobs:
       - name: Generate manifest
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          OLD=${steps.prev.outputs.prev#v}
+          PREV_TAG="${{ steps.prev.outputs.prev }}"
+          OLD=${PREV_TAG#v}
           
           PATCH_FILE="launcher-v${OLD}_to_v${VERSION}.patch"
           if [ ! -f "$PATCH_FILE" ]; then
