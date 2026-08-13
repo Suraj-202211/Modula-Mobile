@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.ModulaMobile"
+           parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">
+            @color/bg_launcher
+        </item>
+        <item name="android:windowIsTranslucent">
+            false
+        </item>
+        <item name="android:windowContentOverlay">
+            @null
+        </item>
+        <item name="android:statusBarColor">
+            #080810
+        </item>
+        <item name="android:navigationBarColor">
+            #080810
+        </item>
+        <item name="android:windowLightStatusBar">
+            false
+        </item>
+        <item name="windowSplashScreenBackground">
+            @color/bg_launcher
+        </item>
+        <item name="windowSplashScreenAnimatedIcon">
+            @drawable/ic_launcher_foreground
+        </item>
+    </style>
+    <style name="Theme.ModulaMobile.Game" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:hardwareAccelerated">true</item>
+    </style>
+</resources>

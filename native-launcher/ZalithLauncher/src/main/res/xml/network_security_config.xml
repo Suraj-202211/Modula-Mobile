@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <base-config
+        cleartextTrafficPermitted="true"
+        tools:ignore="InsecureBaseConfiguration" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">login.microsoftonline.com</domain>
+        <domain includeSubdomains="true">login.live.com</domain>
+        <domain includeSubdomains="true">user.auth.xboxlive.com</domain>
+        <domain includeSubdomains="true">xsts.auth.xboxlive.com</domain>
+        <domain includeSubdomains="true">api.minecraftservices.com</domain>
+        <domain includeSubdomains="true">sessionserver.mojang.com</domain>
+        <domain includeSubdomains="true">api.mojang.com</domain>
+    </domain-config>
+</network-security-config>

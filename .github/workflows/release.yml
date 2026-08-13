@@ -19,11 +19,6 @@ jobs:
           fetch-depth: 0
           submodules: false
 
-      - name: Clone native-launcher branch
-        run: |
-          rm -rf native-launcher
-          git clone -b bsdiff-test --depth 1 https://github.com/Suraj-202211/ZalithLauncher2.git native-launcher
-
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -42,6 +37,9 @@ jobs:
         run: chmod +x native-launcher/gradlew
 
       - name: Build release APK
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
         working-directory: native-launcher
 

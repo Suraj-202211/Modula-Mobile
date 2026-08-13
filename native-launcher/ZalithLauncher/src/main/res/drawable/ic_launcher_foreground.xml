@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Green circle (left) -->
+    <path
+        android:fillColor="#00FF00"
+        android:pathData="M38,54
+            m-28,0
+            a28,28 0 1,0 56,0
+            a28,28 0 1,0 -56,0"/>
+
+    <!-- Red circle (right) -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M70,54
+            m-28,0
+            a28,28 0 1,0 56,0
+            a28,28 0 1,0 -56,0"/>
+
+    <!-- Left stroke of M -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M22,72 L22,34 L34,34 L34,72 Z"/>
+
+    <!-- Left diagonal of M -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M22,34 L34,34 L54,58 L42,58 Z"/>
+
+    <!-- Right diagonal of M -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,58 L66,58 L86,34 L74,34 Z"/>
+
+    <!-- Right stroke of M with notch -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M74,34 L86,34 L86,72 L74,72 L74,44 L80,34 Z"/>
+
+</vector>

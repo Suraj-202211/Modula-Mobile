@@ -1,4 +1,0 @@
-[submodule "native-launcher"]
-	path = native-launcher
-	url = https://github.com/Suraj-202211/ZalithLauncher2.git
-	branch = bsdiff-test
