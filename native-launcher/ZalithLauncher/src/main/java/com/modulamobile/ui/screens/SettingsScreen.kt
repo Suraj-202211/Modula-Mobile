@@ -1,4 +1,4 @@
-﻿package com.modulamobile.ui.screens
+package com.modulamobile.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -83,7 +83,9 @@ fun SettingsScreen(
     val useSurfaceView by viewModel.useSurfaceView.collectAsState()
 
     val themeAccentColor = com.modulamobile.ui.theme.LocalModulaColors.current.primary
-    val maxRam = 16384f
+    val totalRamMb = com.modulamobile.utils.DeviceRamUtils.getTotalRamMb(context)
+    val maxRam = com.modulamobile.utils.DeviceRamUtils.getSafeMaxRamMb(totalRamMb).toFloat()
+    val totalRamGbStr = String.format(java.util.Locale.US, "%.1f", totalRamMb / 1024f)
     val uriHandler = LocalUriHandler.current
 
     Box(modifier = Modifier.fillMaxSize().background(ColorBg0)) {
@@ -101,7 +103,8 @@ fun SettingsScreen(
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("RAM ALLOCATION", style = ModulaTypography.labelSmall, color = themeAccentColor)
-                            Text("${ramAllocationMb ?: 512}MB", style = ModulaTypography.labelSmall, color = themeAccentColor)
+                            val currentGb = String.format(java.util.Locale.US, "%.1f", (ramAllocationMb ?: 512).toFloat() / 1024f)
+                            Text("$currentGb GB / $totalRamGbStr GB", style = ModulaTypography.labelSmall, color = themeAccentColor)
                         }
                         
                         GlassSlider(
@@ -113,8 +116,10 @@ fun SettingsScreen(
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("512MB", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp), color = TextMuted)
-                            Text("RECOMMENDED: 4096MB", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp), color = themeAccentColor)
-                            Text("${maxRam.toInt() / 1024}GB", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp), color = TextMuted)
+                            val recommendedMb = com.movtery.zalithlauncher.setting.findBestRAMAllocation(context)
+                            Text("RECOMMENDED: ${recommendedMb}MB", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp), color = themeAccentColor)
+                            val maxGbStr = String.format(java.util.Locale.US, "%.1f", maxRam / 1024f)
+                            Text("${maxGbStr}GB", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp), color = TextMuted)
                         }
                         
                         Spacer(modifier = Modifier.height(24.dp))

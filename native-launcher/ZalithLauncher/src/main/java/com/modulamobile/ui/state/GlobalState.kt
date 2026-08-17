@@ -10,7 +10,7 @@ enum class FluxTheme {
 
 object GlobalState {
     // Engine Metrics
-    var ramAllocation by mutableStateOf(4096f) // 512MB to 16384MB
+    var ramAllocation by mutableStateOf(4096f) // Dynamic based on device RAM
     var fpsUnlock by mutableStateOf(false)
     var richPresence by mutableStateOf(true)
     var performanceMode by mutableStateOf(false)

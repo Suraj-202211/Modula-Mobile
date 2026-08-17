@@ -55,13 +55,6 @@ fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
 fun findBestRAMAllocation(context: Context): Int {
     if (Architecture.is32BitsDevice) return 696
 
-    val deviceRam = getTotalMemory(context).bytesToMB()
-    return when {
-        deviceRam <= 3072 -> 768
-        deviceRam < 6144 -> 1536
-        deviceRam < 8192 -> 2048
-        deviceRam < 12288 -> 3072
-        deviceRam < 16384 -> 4096
-        else -> 6144
-    }
+    val totalRamMb = com.modulamobile.utils.DeviceRamUtils.getTotalRamMb(context)
+    return com.modulamobile.utils.DeviceRamUtils.getSafeMaxRamMb(totalRamMb)
 }
