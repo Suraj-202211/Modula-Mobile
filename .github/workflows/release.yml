@@ -130,3 +130,57 @@ jobs:
             launcher-v*.apk
             launcher-v*_to_v*.patch
             release.json
+
+      - name: Generate and Commit latest.json
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          APK_FILE="launcher-v${VERSION}.apk"
+          
+          if [ ! -f "$APK_FILE" ]; then
+            echo "Error: APK file $APK_FILE not found!"
+            exit 1
+          fi
+          
+          # Fetch and checkout main branch
+          git fetch origin main
+          git checkout main
+          
+          # Extract versionCode and versionName using apkanalyzer
+          APK_ANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+          VERSION_CODE=$($APK_ANALYZER manifest version-code "$APK_FILE")
+          VERSION_NAME=$($APK_ANALYZER manifest version-name "$APK_FILE")
+          
+          if [ -z "$VERSION_CODE" ] || [ -z "$VERSION_NAME" ]; then
+            echo "Failed to extract version info from APK."
+            exit 1
+          fi
+          
+          APK_SIZE=$(stat -c%s "$APK_FILE")
+          APK_SHA256=$(sha256sum "$APK_FILE" | awk '{ print $1 }' | tr '[:lower:]' '[:upper:]')
+          RELEASE_DATE=$(date -u +"%Y-%m-%d")
+          
+          mkdir -p updates
+          cat <<EOF > updates/latest.json
+          {
+            "versionCode": $VERSION_CODE,
+            "versionName": "$VERSION_NAME",
+            "releaseNotes": [
+              "Release $VERSION_NAME of Modula Mobile"
+            ],
+            "mandatory": false,
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK_FILE",
+            "apkSizeBytes": $APK_SIZE,
+            "apkSha256": "$APK_SHA256",
+            "releaseDate": "$RELEASE_DATE"
+          }
+          EOF
+          
+          echo "Generated updates/latest.json:"
+          cat updates/latest.json
+          
+          # Commit and push
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add updates/latest.json
+          git commit -m "chore: update latest release metadata [skip ci]" || echo "No changes to commit"
+          git push origin main
