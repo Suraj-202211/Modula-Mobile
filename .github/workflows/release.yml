@@ -49,6 +49,11 @@ jobs:
           cp native-launcher/ZalithLauncher/build/outputs/apk/release/*.apk \
              launcher-v${VERSION}.apk
 
+      - name: Free Memory (Kill Gradle)
+        run: |
+          cd native-launcher && ./gradlew --stop || true
+          sudo sysctl -w vm.drop_caches=3
+
       # ------------------------------------------------------------
       # Download previous release APK
       # ------------------------------------------------------------
@@ -77,7 +82,7 @@ jobs:
       - name: Allocate swap space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 10
+          swap-size-gb: 4
 
       - name: Generate patch
         continue-on-error: true
