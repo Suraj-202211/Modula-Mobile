@@ -31,7 +31,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install patch tools
-        run: pip install bsdiff4
+        run: sudo apt-get update && sudo apt-get install -y bsdiff
 
       - name: Grant Gradle permission
         run: chmod +x native-launcher/gradlew
@@ -83,10 +83,7 @@ jobs:
           OLD=${PREV_TAG#v}
           
           if [ -f "previous/launcher-v${OLD}.apk" ]; then
-            python scripts/generate_patch.py \
-              previous/launcher-v${OLD}.apk \
-              launcher-v${NEW}.apk \
-              launcher-v${OLD}_to_v${NEW}.patch
+            bsdiff previous/launcher-v${OLD}.apk launcher-v${NEW}.apk launcher-v${OLD}_to_v${NEW}.patch
           else
             echo "Previous APK not downloaded, skipping patch generation."
           fi
