@@ -74,6 +74,11 @@ jobs:
       # Generate bsdiff patch
       # ------------------------------------------------------------
 
+      - name: Allocate swap space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
       - name: Generate patch
         continue-on-error: true
         if: steps.prev.outputs.prev != ''
