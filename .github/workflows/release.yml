@@ -56,7 +56,7 @@ jobs:
       - name: Get previous tag
         id: prev
         run: |
-          PREV=$(git tag --sort=-creatordate | grep '^v' | grep -v '${GITHUB_REF_NAME}' | head -n 1)
+          PREV=$(git tag --sort=-creatordate | grep '^v' | grep -v "${GITHUB_REF_NAME}" | head -n 1)
           echo "prev=$PREV" >> $GITHUB_OUTPUT
 
       - name: Download previous APK

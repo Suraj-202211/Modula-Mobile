@@ -5,9 +5,6 @@ old_file = sys.argv[1]
 new_file = sys.argv[2]
 patch_file = sys.argv[3]
 
-with open(old_file, 'rb') as oldf, \
-     open(new_file, 'rb') as newf, \
-     open(patch_file, 'wb') as patchf:
-    bsdiff4.file_diff(oldf, newf, patchf)
+bsdiff4.file_diff(old_file, new_file, patch_file)
 
 print(f'Patch created: {patch_file}')
