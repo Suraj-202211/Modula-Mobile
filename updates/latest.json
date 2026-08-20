@@ -1,15 +1,12 @@
 {
-  "versionCode": 3,
-  "versionName": "1.0.0",
+  "versionCode": 1,
+  "versionName": "1.0.0-GOLDEN",
   "releaseNotes": [
-    "Hotfix release of Modula Mobile",
-    "Fixed DataStore settings reset bugs",
-    "Fixed OTA update UI crashing",
-    "Temporarily disabled Microsoft Login"
+    "Release 1.0.0-GOLDEN of Modula Mobile"
   ],
   "mandatory": false,
-  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.0/ModulaMobile-v1.0.0.apk",
-  "apkSizeBytes": 361624509,
-  "apkSha256": "4B4197F68C54A11EC24CACDFA17552D9E847EABEB0A174C94F1D07F77AFECF6E",
-  "releaseDate": "2026-06-16"
+  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.4/launcher-v1.0.4.apk",
+  "apkSizeBytes": 228991983,
+  "apkSha256": "D3462707008319EFA739935DB805D61C692EF750C64076CE156E95DE28A9D611",
+  "releaseDate": "2026-08-20"
 }
