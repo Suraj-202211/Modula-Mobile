@@ -38,7 +38,9 @@ class UpdateChecker @Inject constructor(
 
                 // Fetch file content from GitHub API
                 val response = httpClient.get(UpdateConfig.UPDATE_CHECK_URL) {
-                    header("Authorization", "Bearer ${UpdateConfig.GITHUB_TOKEN}")
+                    if (UpdateConfig.GITHUB_TOKEN.isNotBlank()) {
+                        header("Authorization", "Bearer ${UpdateConfig.GITHUB_TOKEN}")
+                    }
                     header("Accept", "application/vnd.github.v3+json")
                     header("X-GitHub-Api-Version", "2022-11-28")
                 }
