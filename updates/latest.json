@@ -1,12 +1,12 @@
 {
-  "versionCode": 5,
-  "versionName": "1.0.5",
+  "versionCode": 6,
+  "versionName": "1.0.6",
   "releaseNotes": [
-    "Release 1.0.5 of Modula Mobile"
+    "Release 1.0.6 of Modula Mobile"
   ],
   "mandatory": false,
-  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.5/launcher-v1.0.5.apk",
-  "apkSizeBytes": 228992015,
-  "apkSha256": "274FAD71C6F7ABD4B8FF3BAF7116D6DE7DEE1005BD618C86A34C7B0E3D9A071D",
+  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.6/launcher-v1.0.6.apk",
+  "apkSizeBytes": 228992071,
+  "apkSha256": "9F28A96338D6A29B7AAA740837B56A7086D1AF63767A8B5A50804FAD5BE50A34",
   "releaseDate": "2026-08-22"
 }
