@@ -8,5 +8,9 @@
   "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.6/launcher-v1.0.6.apk",
   "apkSizeBytes": 228992071,
   "apkSha256": "9F28A96338D6A29B7AAA740837B56A7086D1AF63767A8B5A50804FAD5BE50A34",
+  "patchUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.6/launcher-v1.0.5_to_v1.0.6.patch",
+  "patchSizeBytes": 5580045,
+  "patchForVersionCode": 5,
+  "patchSha256": "1c339d69b8fc810f9af496a6041d85d6869fbe72f40d0596e3c5c6171356c886",
   "releaseDate": "2026-08-22"
 }
