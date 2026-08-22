@@ -83,7 +83,7 @@ android {
     if (localPropsFile.exists()) {
         localProps.load(localPropsFile.inputStream())
     }
-    val githubToken = localProps.getProperty("GITHUB_TOKEN", "")
+    val githubToken = localProps.getProperty("GITHUB_TOKEN") ?: System.getenv("APP_GITHUB_TOKEN") ?: ""
 
 
     buildTypes {

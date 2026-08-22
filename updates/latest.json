@@ -4,7 +4,7 @@
   "releaseNotes": [
     "Release 1.0.6 of Modula Mobile"
   ],
-  "mandatory": false,
+  "mandatory": true,
   "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.6/launcher-v1.0.6.apk",
   "apkSizeBytes": 228992071,
   "apkSha256": "9F28A96338D6A29B7AAA740837B56A7086D1AF63767A8B5A50804FAD5BE50A34",
