@@ -197,22 +197,6 @@ jobs:
             "releaseDate": "$RELEASE_DATE"${PATCH_JSON}
           }
           EOF
-
-          mkdir -p updates
-          cat <<EOF > updates/latest.json
-          {
-            "versionCode": $VERSION_CODE,
-            "versionName": "$VERSION_NAME",
-            "releaseNotes": [
-              "Release $VERSION_NAME of Modula Mobile"
-            ],
-            "mandatory": false,
-            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK_FILE",
-            "apkSizeBytes": $APK_SIZE,
-            "apkSha256": "$APK_SHA256",
-            "releaseDate": "$RELEASE_DATE"
-          }
-          EOF
           
           echo "Generated updates/latest.json:"
           cat updates/latest.json
