@@ -144,7 +144,7 @@ fun SettingsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().background(Color(0xFF1A1A1A), RoundedCornerShape(8.dp)).border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp)).padding(16.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(androidx.compose.material.icons.Icons.Rounded.ElectricBolt, contentDescription = null, tint = themeAccentColor, modifier = Modifier.size(16.dp))
+                                    Icon(androidx.compose.material.icons.Icons.Rounded.FlashOn, contentDescription = null, tint = themeAccentColor, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text("PERFORMANCE MODE", style = ModulaTypography.labelSmall, color = Color.White)
                                 }
