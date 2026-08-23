@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.modulamobile.ui.settings.SettingsViewModel
 import com.modulamobile.ui.theme.*
@@ -144,7 +146,7 @@ fun SettingsScreen(
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().background(Color(0xFF1A1A1A), RoundedCornerShape(8.dp)).border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp)).padding(16.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(androidx.compose.material.icons.Icons.Rounded.Bolt, contentDescription = null, tint = themeAccentColor, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Rounded.Bolt, contentDescription = null, tint = themeAccentColor, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text("PERFORMANCE MODE", style = ModulaTypography.labelSmall, color = Color.White)
                                 }
