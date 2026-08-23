@@ -242,7 +242,7 @@ fun ProfileScreen(
                                                 ) {
                                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                                         Text(anim.uppercase(), style = ModulaTypography.labelSmall.copy(fontSize = 10.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Black), color = Color.White.copy(alpha=0.4f))
-                                                        Icon(if (anim == "running") Icons.Rounded.ElectricBolt else if (anim == "walking") Icons.Rounded.DirectionsWalk else Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White.copy(alpha=0.4f), modifier = Modifier.size(10.dp))
+                                                        Icon(if (anim == "running") Icons.Rounded.Bolt else if (anim == "walking") Icons.Rounded.DirectionsWalk else Icons.Rounded.PlayArrow, contentDescription = null, tint = Color.White.copy(alpha=0.4f), modifier = Modifier.size(10.dp))
                                                     }
                                                 }
                                             }

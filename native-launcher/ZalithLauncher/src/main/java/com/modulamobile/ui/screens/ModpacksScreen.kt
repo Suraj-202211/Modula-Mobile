@@ -168,7 +168,7 @@ fun ModpacksScreen(
                                 modifier = Modifier.fillMaxWidth().height(160.dp)
                             ) {
                                 Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-                                    Icon(Icons.Rounded.ElectricBolt, contentDescription = null, tint = Color.White.copy(alpha=0.1f), modifier = Modifier.size(100.dp).align(Alignment.CenterEnd).offset(x = 20.dp, y = (-20).dp))
+                                    Icon(Icons.Rounded.Bolt, contentDescription = null, tint = Color.White.copy(alpha=0.1f), modifier = Modifier.size(100.dp).align(Alignment.CenterEnd).offset(x = 20.dp, y = (-20).dp))
                                     Column {
                                         Text("OPTIMIZATION ENGINE", style = ModulaTypography.titleLarge, color = ColorBg0)
                                         Spacer(modifier = Modifier.height(8.dp))
