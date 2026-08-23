@@ -159,9 +159,8 @@ class ModsViewModel @Inject constructor(
 
     suspend fun getAvailableGameVersionsForModpack(projectId: String): List<String> {
         return try {
-            val searcher = com.movtery.zalithlauncher.game.download.assets.platform.modrinth.ModrinthSearcher()
-            val versions = searcher.getVersionsChunk(projectId)
-            versions.flatMap { it.gameVersions.toList() }.distinct().sortedDescending()
+            val versions = modrinthApi.getModVersions(projectId, emptyList(), emptyList())
+            versions.flatMap { it.gameVersions }.distinct().sortedDescending()
         } catch (e: Exception) {
             Log.e("MODULA_API_ERROR", "Failed: ${e.javaClass.simpleName} - ${e.message}", e)
             emptyList()

@@ -84,7 +84,8 @@ fun SettingsScreen(
 
     val themeAccentColor = com.modulamobile.ui.theme.LocalModulaColors.current.primary
     val totalRamMb = com.modulamobile.utils.DeviceRamUtils.getTotalRamMb(context)
-    val maxRam = com.modulamobile.utils.DeviceRamUtils.getSafeMaxRamMb(totalRamMb).toFloat()
+    val maxRam = com.modulamobile.utils.DeviceRamUtils.getSafeMaxRamMb(totalRamMb).toFloat().coerceAtLeast(1024f)
+    val safeRamAllocation = (ramAllocationMb ?: 512).toFloat().coerceIn(512f, maxRam)
     val totalRamGbStr = String.format(java.util.Locale.US, "%.1f", totalRamMb / 1024f)
     val uriHandler = LocalUriHandler.current
 
@@ -97,18 +98,18 @@ fun SettingsScreen(
             
             // Engine Metrics
             item {
-                GlassCard(variant = GlassVariant.GOLD, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                GlassHeroCard(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         GlassSectionHeader("ENGINE METRICS & PERFORMANCE")
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("RAM ALLOCATION", style = ModulaTypography.labelSmall, color = themeAccentColor)
-                            val currentGb = String.format(java.util.Locale.US, "%.1f", (ramAllocationMb ?: 512).toFloat() / 1024f)
+                            val currentGb = String.format(java.util.Locale.US, "%.1f", safeRamAllocation / 1024f)
                             Text("$currentGb GB / $totalRamGbStr GB", style = ModulaTypography.labelSmall, color = themeAccentColor)
                         }
                         
                         GlassSlider(
-                            value = (ramAllocationMb ?: 512).toFloat(),
+                            value = safeRamAllocation,
                             onValueChange = { viewModel.setRamAllocation(it.toInt()) },
                             valueRange = 512f..maxRam,
                             modifier = Modifier.fillMaxWidth()
@@ -142,7 +143,12 @@ fun SettingsScreen(
                         val isPerformanceMode = sustainedPerformance && bigCoreAffinity && !useSurfaceView
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().background(Color(0xFF1A1A1A), RoundedCornerShape(8.dp)).border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp)).padding(16.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("âš¡ PERFORMANCE MODE", style = ModulaTypography.labelSmall, color = Color.White)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(androidx.compose.material.icons.Icons.Rounded.ElectricBolt, contentDescription = null, tint = themeAccentColor, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("PERFORMANCE MODE", style = ModulaTypography.labelSmall, color = Color.White)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text("REDUCES UI ANIMATION DENSITY AND OPTIMIZES JVM THREAD PRIORITY FOR MINIMUM LAG.", style = ModulaTypography.labelSmall.copy(fontSize = 8.sp, lineHeight = 12.sp), color = TextMuted)
                             }
                             GlassToggle(

@@ -312,12 +312,15 @@ fun RealModpackListCard(pack: ModrinthMod, isInstalled: Boolean, onInstall: () -
                             Text("INSTALLED", style = ModulaTypography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp), color = Color(0xFF4CAF50))
                         }
                     } else {
-                        GlassButton(
-                            text = "INSTALL",
-                            variant = GlassVariant.GOLD,
-                            onClick = { onInstall() },
-                            modifier = Modifier.height(32.dp).padding(horizontal = 12.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .glass(GlassVariant.GOLD, 8.dp)
+                                .clickable { onInstall() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Rounded.Download, contentDescription = "Install", tint = ColorBg0, modifier = Modifier.size(16.dp))
+                        }
                     }
                 }
             }
