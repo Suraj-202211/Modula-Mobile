@@ -2,6 +2,7 @@ package com.modulamobile.updater
 
 import android.content.Context
 import com.movtery.zalithlauncher.BuildConfig
+import com.movtery.zalithlauncher.upgrade.BsPatch
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -40,9 +41,16 @@ class ApkDownloader @Inject constructor(
             }
         }
 
+        val usePatch = info.patchForVersionCode == BuildConfig.VERSION_CODE && info.patchUrl != null
+        
         val apkFile = File(updateDir, "ModulaMobile-${info.versionName}.apk")
+        val downloadFile = if (usePatch) File(updateDir, "ModulaMobile-${info.versionName}.patch") else apkFile
+        
+        if (downloadFile.exists()) {
+            downloadFile.delete()
+        }
 
-        val response = httpClient.get(info.apkUrl) {
+        val response = httpClient.get(if (usePatch) info.patchUrl!! else info.apkUrl) {
             header("User-Agent", "ModulaMobile/${BuildConfig.VERSION_NAME}")
         }
 
@@ -50,12 +58,12 @@ class ApkDownloader @Inject constructor(
             throw IOException("Download failed: ${response.status.value}")
         }
 
-        val totalBytes = response.contentLength() ?: info.apkSizeBytes
+        val totalBytes = response.contentLength() ?: if (usePatch) (info.patchSizeBytes ?: info.apkSizeBytes) else info.apkSizeBytes
         var downloadedBytes = 0L
         var lastTime = System.currentTimeMillis()
         var lastBytes = 0L
 
-        FileOutputStream(apkFile).use { output ->
+        FileOutputStream(downloadFile).use { output ->
             val channel = response.bodyAsChannel()
             val buffer = ByteArray(8192)
             while (!channel.isClosedForRead) {
@@ -89,6 +97,17 @@ class ApkDownloader @Inject constructor(
             totalBytes.toFloat() / 1024f / 1024f,
             0f
         )
+
+        if (usePatch) {
+            val currentApkPath = context.applicationInfo.sourceDir
+            val result = BsPatch.applyPatch(currentApkPath, apkFile.absolutePath, downloadFile.absolutePath)
+            if (result != 0) {
+                if (apkFile.exists()) apkFile.delete()
+                throw IOException("Failed to apply bsdiff patch. Code: $result")
+            }
+            // Delete patch file after applying
+            downloadFile.delete()
+        }
 
         apkFile
     }

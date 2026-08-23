@@ -540,8 +540,6 @@ class MainActivity : BaseAppCompatActivity() {
                 val updateState by updateViewModel.state.collectAsStateWithLifecycle()
 
                 Box(Modifier.fillMaxSize()) {
-                    // Non-mandatory banner removed as per user request
-                    /*
                     if (updateState is UpdateState.Available && !(updateState as UpdateState.Available).info.mandatory) {
                         Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter).padding(bottom = 64.dp)) {
                             UpdateBanner(
@@ -551,7 +549,6 @@ class MainActivity : BaseAppCompatActivity() {
                             )
                         }
                     }
-                    */
 
                     // Progress Sheet for non-mandatory (mandatory has it built-in)
                     if (updateState is UpdateState.Downloading || updateState is UpdateState.Installing || updateState is UpdateState.ReadyToInstall || updateState is UpdateState.Failed) {

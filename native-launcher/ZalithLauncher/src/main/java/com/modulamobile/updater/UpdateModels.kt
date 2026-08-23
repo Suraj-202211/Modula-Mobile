@@ -21,7 +21,15 @@ data class UpdateInfo(
     @SerialName("apkSha256")
     val apkSha256: String,
     @SerialName("releaseDate")
-    val releaseDate: String = ""
+    val releaseDate: String = "",
+    @SerialName("patchUrl")
+    val patchUrl: String? = null,
+    @SerialName("patchSizeBytes")
+    val patchSizeBytes: Long? = null,
+    @SerialName("patchSha256")
+    val patchSha256: String? = null,
+    @SerialName("patchForVersionCode")
+    val patchForVersionCode: Int? = null
 )
 
 // GitHub API response for file content
