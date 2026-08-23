@@ -166,6 +166,38 @@ jobs:
           APK_SHA256=$(sha256sum "$APK_FILE" | awk '{ print $1 }' | tr '[:lower:]' '[:upper:]')
           RELEASE_DATE=$(date -u +"%Y-%m-%d")
           
+                    PREV_TAG="${{ steps.prev.outputs.prev }}"
+          PATCH_JSON=""
+          if [ -n "$PREV_TAG" ]; then
+            OLD=${PREV_TAG#v}
+            PATCH_FILE="launcher-v${OLD}_to_v${VERSION}.patch"
+            if [ -f "$PATCH_FILE" ] && [ -f "previous/launcher-v${OLD}.apk" ]; then
+              PATCH_SIZE=$(stat -c%s "$PATCH_FILE")
+              PATCH_SHA256=$(sha256sum "$PATCH_FILE" | awk '{ print $1 }' | tr '[:lower:]' '[:upper:]')
+              OLD_VERSION_CODE=$($APK_ANALYZER manifest version-code "previous/launcher-v${OLD}.apk")
+              
+              if [ -n "$OLD_VERSION_CODE" ]; then
+                PATCH_JSON=",\"patchUrl\":\"https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$PATCH_FILE\",\"patchSizeBytes\":$PATCH_SIZE,\"patchSha256\":\"$PATCH_SHA256\",\"patchForVersionCode\":$OLD_VERSION_CODE"
+              fi
+            fi
+          fi
+          
+          mkdir -p updates
+          cat <<EOF > updates/latest.json
+          {
+            "versionCode": $VERSION_CODE,
+            "versionName": "$VERSION_NAME",
+            "releaseNotes": [
+              "Release $VERSION_NAME of Modula Mobile"
+            ],
+            "mandatory": false,
+            "apkUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/$APK_FILE",
+            "apkSizeBytes": $APK_SIZE,
+            "apkSha256": "$APK_SHA256",
+            "releaseDate": "$RELEASE_DATE"${PATCH_JSON}
+          }
+          EOF
+
           mkdir -p updates
           cat <<EOF > updates/latest.json
           {
