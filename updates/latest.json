@@ -4,7 +4,7 @@
   "releaseNotes": [
     "Release 1.0.8 of Modula Mobile"
   ],
-  "mandatory": false,
+  "mandatory": true,
   "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.8/launcher-v1.0.8.apk",
   "apkSizeBytes": 228992119,
   "apkSha256": "2A1CBFDAFECFB66B2437466B461C14F16DEA3478E1F34EACBB5D82C8ECB16CFD",
