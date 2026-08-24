@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import com.modulamobile.ui.glass.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun GlassSectionHeader(title: String, modifier: Modifier = Modifier) {
@@ -53,6 +54,8 @@ fun SettingsScreen(
     var tempJvmArgs by remember { mutableStateOf(jvmArgs) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
+    val upgradeViewModel: com.movtery.zalithlauncher.viewmodel.LauncherUpgradeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(context as androidx.activity.ComponentActivity)
+    val scope = rememberCoroutineScope()
     val migrationLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -438,6 +441,22 @@ fun SettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     GlassGhostButton("CLEAR GAME CACHE", onClick = { showCacheDialog = true }, modifier = Modifier.fillMaxWidth())
                     GlassGhostButton("RESET SETTINGS TO DEFAULT", onClick = { showResetDialog = true }, modifier = Modifier.fillMaxWidth())
+                    GlassButton("CHECK FOR UPDATES", onClick = {
+                        scope.launch {
+                            try {
+                                upgradeViewModel.checkManually(
+                                    onInProgress = {
+                                        android.widget.Toast.makeText(context, "Checking for updates...", android.widget.Toast.LENGTH_SHORT).show()
+                                    },
+                                    onIsLatest = {
+                                        android.widget.Toast.makeText(context, "You are on the latest version!", android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(context, "Check too frequent or failed", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }, modifier = Modifier.fillMaxWidth())
                     GlassButton("LOGOUT SESSION", onClick = { showLogoutDialog = true }, modifier = Modifier.fillMaxWidth())
                 }
             }

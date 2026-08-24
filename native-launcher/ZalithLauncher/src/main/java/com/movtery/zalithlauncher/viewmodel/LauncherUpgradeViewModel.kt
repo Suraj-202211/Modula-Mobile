@@ -196,10 +196,7 @@ class LauncherUpgradeViewModel: ViewModel() {
             runCatching {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
                     //获取最新的启动器信息
-                    val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
-                    //需要Base64解密
-                    val contentString = decodeBase64(api.content)
-                    GLOBAL_JSON.decodeFromString(RemoteData.serializer(), contentString)
+                    GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<RemoteData>()
                 }
             }.getOrElse { e ->
                 if (Locale.getDefault().language == "zh") {
