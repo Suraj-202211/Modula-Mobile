@@ -197,7 +197,7 @@ class LauncherUpgradeViewModel: ViewModel() {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
                     //获取最新的启动器信息
                     val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
-                    val content = api?.content?.replace("\n", "")?.decodeBase64()
+                    val content = api?.content?.replace("\n", "")?.let { decodeBase64(it) }
                     if (content != null) {
                         GLOBAL_JSON.decodeFromString<RemoteData>(content)
                     } else null
@@ -209,7 +209,7 @@ class LauncherUpgradeViewModel: ViewModel() {
                         //在中国地区，可能因为无法访问 Github API 导致获取更新信息失败
                         withRetry(logTag = "LauncherUpgrade_Chinese", maxRetries = 2) {
                             val api = GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<GithubContentApi>()
-                            val content = api?.content?.replace("\n", "")?.decodeBase64()
+                            val content = api?.content?.replace("\n", "")?.let { decodeBase64(it) }
                             if (content != null) {
                                 GLOBAL_JSON.decodeFromString<RemoteData>(content)
                             } else null
