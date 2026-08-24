@@ -1,18 +1,19 @@
 {
-  "_links": {
-    "git": "",
-    "html": "",
-    "self": ""
+  "code": 1013,
+  "version": "1.0.13",
+  "created_at": "2026-08-08T00:00:00Z",
+  "files": [
+    {
+      "file_name": "Modula Mobile v1.0.13",
+      "uri": "https://github.com/unknown/repo/releases/download/v1.0.13/launcher-v1.0.13.apk",
+      "arch": "all",
+      "size": 0,
+      "apk_sha256": null
+    }
+  ],
+  "default_body": {
+    "language": "en",
+    "markdown": "# Modula Mobile v1.0.13\n\n* Reduced launcher startup time\n* Improved Mesa renderer compatibility\n* Added dynamic RAM allocation\n* Enabled bsdiff delta updates"
   },
-  "content": "eyJjb2RlIjogMTA4LCAidmVyc2lvbiI6ICIxLjAuOCIsICJjcmVhdGVkX2F0IjogIjIwMjYtMDgtMDhUMDA6MDA6MDBaIiwgImZpbGVzIjogW3siZmlsZV9uYW1lIjogIk1vZHVsYSBNb2JpbGUgdjEuMC44IiwgInVyaSI6ICJodHRwczovL2dpdGh1Yi5jb20vU3VyYWotMjAyMjExL01vZHVsYS1Nb2JpbGUvcmVsZWFzZXMvZG93bmxvYWQvdjEuMC44L2xhdW5jaGVyLXYxLjAuOC5hcGsiLCAiYXJjaCI6ICJhbGwiLCAic2l6ZSI6IDIyODk5MjExOSwgImFwa19zaGEyNTYiOiAiMmExY2JmZGFmZWNmYjY2YjI0Mzc0NjZiNDYxYzE0ZjE2ZGVhMzQ3OGUxZjM0ZWFjYmI1ZDgyYzhlY2IxNmNmZCIsICJwYXRjaF91cmkiOiAiaHR0cHM6Ly9naXRodWIuY29tL1N1cmFqLTIwMjIxMS9Nb2R1bGEtTW9iaWxlL3JlbGVhc2VzL2Rvd25sb2FkL3YxLjAuOC9sYXVuY2hlci12MS4wLjVfdG9fdjEuMC44LnBhdGNoIiwgInBhdGNoX3NpemUiOiA1NTc5MDIwLCAicGF0Y2hfc2hhMjU2IjogIjMwNjllYjcyMGVhNjMxYWQxMjA1ZGYzZmJmOGM0ZGMyY2EyYWM1MDRkNmJkMzY1ZTc0YTY0MzRjYjFjNGNhZDciLCAicGF0Y2hfZm9yX3ZlcnNpb25fY29kZSI6IDV9XSwgImRlZmF1bHRfYm9keSI6IHsibGFuZ3VhZ2UiOiAiZW4iLCAibWFya2Rvd24iOiAiIyBNb2R1bGEgTW9iaWxlIHYxLjAuOFxuXG4qIFJlZHVjZWQgbGF1bmNoZXIgc3RhcnR1cCB0aW1lXG4qIEltcHJvdmVkIE1lc2EgcmVuZGVyZXIgY29tcGF0aWJpbGl0eVxuKiBBZGRlZCBkeW5hbWljIFJBTSBhbGxvY2F0aW9uXG4qIEVuYWJsZWQgYnNkaWZmIGRlbHRhIHVwZGF0ZXMifSwgImJvZGllcyI6IFtdfQ==",
-  "download_url": "",
-  "encoding": "base64",
-  "git_url": "",
-  "html_url": "",
-  "name": "release.json",
-  "path": "release.json",
-  "sha": "",
-  "size": 1096,
-  "type": "file",
-  "url": ""
+  "bodies": []
 }

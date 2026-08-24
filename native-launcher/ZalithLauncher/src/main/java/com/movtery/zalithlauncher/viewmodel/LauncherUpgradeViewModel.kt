@@ -50,20 +50,19 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.upgrade.UpgradeDialog
 import com.movtery.zalithlauncher.ui.upgrade.UpgradeFilesDialog
 import com.movtery.zalithlauncher.ui.upgrade.AutoUpdaterScreen
-import com.movtery.zalithlauncher.upgrade.GithubContentApi
 import com.movtery.zalithlauncher.upgrade.RemoteData
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
 import com.movtery.zalithlauncher.utils.logging.Logger.lInfo
 import com.movtery.zalithlauncher.utils.logging.Logger.lWarning
-import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
 import com.movtery.zalithlauncher.utils.network.withRetry
-import com.movtery.zalithlauncher.utils.string.decodeBase64
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -188,34 +187,49 @@ class LauncherUpgradeViewModel: ViewModel() {
         }
     }
 
+    private suspend fun fetchSingleUrl(url: String, logTag: String): RemoteData? {
+        return withRetry(logTag = logTag, maxRetries = 2) {
+            lInfo("[UPDATE] Starting update check")
+            lInfo("[UPDATE] URL: $url")
+            val response = try {
+                GLOBAL_CLIENT.get(url)
+            } catch (e: Exception) {
+                lWarning("[UPDATE] HTTP request failed: type=${e.javaClass.simpleName}, message=${e.message}", e)
+                throw e
+            }
+            lInfo("[UPDATE] HTTP status: ${response.status.value}")
+            val rawString = try {
+                response.bodyAsText()
+            } catch (e: Exception) {
+                lWarning("[UPDATE] Failed to read response body: type=${e.javaClass.simpleName}, message=${e.message}", e)
+                throw e
+            }
+            lInfo("[UPDATE] Response length: ${rawString.length}")
+            
+            try {
+                GLOBAL_JSON.decodeFromString<RemoteData>(rawString)
+            } catch (e: SerializationException) {
+                val safeResponse = if (rawString.length > 500) rawString.take(500) + "..." else rawString
+                lWarning("[UPDATE] JSON parsing failed: type=${e.javaClass.simpleName}, message=${e.message}, rawResponse=$safeResponse", e)
+                throw e
+            }
+        }
+    }
+
     /**
      * 从远端获取最新的启动器信息
      */
     private suspend fun fetchRemoteData(): RemoteData? {
         return withContext(Dispatchers.IO) {
             runCatching {
-                withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
-                    //获取最新的启动器信息
-                    val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
-                    val content = api?.content?.replace("\n", "")?.let { decodeBase64(it) }
-                    if (content != null) {
-                        GLOBAL_JSON.decodeFromString<RemoteData>(content)
-                    } else null
-                }
+                fetchSingleUrl(LATEST_API_URL, "LauncherUpgrade")
             }.getOrElse { e ->
                 if (Locale.getDefault().language == "zh") {
                     runCatching {
                         lInfo("Check for updates in the Chinese region.")
-                        //在中国地区，可能因为无法访问 Github API 导致获取更新信息失败
-                        withRetry(logTag = "LauncherUpgrade_Chinese", maxRetries = 2) {
-                            val api = GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<GithubContentApi>()
-                            val content = api?.content?.replace("\n", "")?.let { decodeBase64(it) }
-                            if (content != null) {
-                                GLOBAL_JSON.decodeFromString<RemoteData>(content)
-                            } else null
-                        }
-                    }.getOrElse { e ->
-                        lWarning("Failed to check for launcher upgrade!", e)
+                        fetchSingleUrl(LATEST_API_CHINESE_URL, "LauncherUpgrade_Chinese")
+                    }.getOrElse { ce ->
+                        lWarning("Failed to check for launcher upgrade from Chinese mirror!", ce)
                         null
                     }
                 } else {
@@ -241,7 +255,14 @@ class LauncherUpgradeViewModel: ViewModel() {
         onIsLatest: suspend () -> Unit = {}
     ) {
         val currentVersionCode = BuildConfig.VERSION_CODE
-        if (currentVersionCode < data.code) {
+        lInfo("[UPDATE] Local versionCode: $currentVersionCode")
+        lInfo("[UPDATE] Remote versionCode: ${data.code}")
+        lInfo("[UPDATE] Remote versionName: ${data.version}")
+        
+        val updateAvailable = currentVersionCode < data.code
+        lInfo("[UPDATE] Update available: $updateAvailable")
+
+        if (updateAvailable) {
             //启动器为旧版本
             when {
                 ignoreDismissedVersions && lastIgnored == data.code -> {

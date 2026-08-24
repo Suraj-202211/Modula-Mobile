@@ -62,37 +62,7 @@ if patch_exists:
     except:
         pass
 
-import base64
-
-json_string = json.dumps(manifest)
-base64_content = base64.b64encode(json_string.encode('utf-8')).decode('utf-8')
-
-# The broken v1.0.5 client expects a GithubContentApi response when downloading release.json directly
-github_api_mock = {
-    "_links": {
-        "git": "",
-        "html": "",
-        "self": ""
-    },
-    "content": base64_content,
-    "download_url": "",
-    "encoding": "base64",
-    "git_url": "",
-    "html_url": "",
-    "name": "release.json",
-    "path": "release.json",
-    "sha": "",
-    "size": len(base64_content),
-    "type": "file",
-    "url": ""
-}
-
-# HACK: Merge the RemoteData (manifest) directly into the top level of the mock.
-# This ensures that broken clients (like v1.0.10) which mistakenly expect raw JSON 
-# can still parse the update, while older clients (v1.0.5) parse the base64 content.
-github_api_mock.update(manifest)
-
-with open('release.json', 'w') as f:
-    json.dump(github_api_mock, f, indent=2)
+with open('release.json', 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
 
 print('release.json generated')
