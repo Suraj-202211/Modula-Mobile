@@ -87,6 +87,11 @@ github_api_mock = {
     "url": ""
 }
 
+# HACK: Merge the RemoteData (manifest) directly into the top level of the mock.
+# This ensures that broken clients (like v1.0.10) which mistakenly expect raw JSON 
+# can still parse the update, while older clients (v1.0.5) parse the base64 content.
+github_api_mock.update(manifest)
+
 with open('release.json', 'w') as f:
     json.dump(github_api_mock, f, indent=2)
 
