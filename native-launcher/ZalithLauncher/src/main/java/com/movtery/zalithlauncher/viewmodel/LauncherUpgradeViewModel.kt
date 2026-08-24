@@ -196,7 +196,11 @@ class LauncherUpgradeViewModel: ViewModel() {
             runCatching {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
                     //获取最新的启动器信息
-                    GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<RemoteData>()
+                    val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
+                    val content = api?.content?.replace("\n", "")?.decodeBase64()
+                    if (content != null) {
+                        GLOBAL_JSON.decodeFromString<RemoteData>(content)
+                    } else null
                 }
             }.getOrElse { e ->
                 if (Locale.getDefault().language == "zh") {
@@ -204,7 +208,11 @@ class LauncherUpgradeViewModel: ViewModel() {
                         lInfo("Check for updates in the Chinese region.")
                         //在中国地区，可能因为无法访问 Github API 导致获取更新信息失败
                         withRetry(logTag = "LauncherUpgrade_Chinese", maxRetries = 2) {
-                            GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<RemoteData>()
+                            val api = GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<GithubContentApi>()
+                            val content = api?.content?.replace("\n", "")?.decodeBase64()
+                            if (content != null) {
+                                GLOBAL_JSON.decodeFromString<RemoteData>(content)
+                            } else null
                         }
                     }.getOrElse { e ->
                         lWarning("Failed to check for launcher upgrade!", e)
