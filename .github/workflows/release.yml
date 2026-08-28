@@ -117,7 +117,8 @@ jobs:
             ${VERSION} \
             launcher-v${VERSION}.apk \
             ${PATCH_FILE} \
-            ${{ github.repository }}
+            ${{ github.repository }} \
+            "previous/launcher-v${OLD}.apk"
 
       # ------------------------------------------------------------
       # Create GitHub Release

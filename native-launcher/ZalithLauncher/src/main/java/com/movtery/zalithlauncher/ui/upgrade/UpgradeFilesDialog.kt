@@ -154,7 +154,22 @@ private fun UpgradeFileLayout(
                     )
                     //大小
                     val sizeString = remember(file) {
-                        formatFileSize(file.size)
+                        val info = com.modulamobile.updater.UpdateInfo(
+                            versionCode = data.code,
+                            versionName = data.version,
+                            releaseNotes = emptyList(),
+                            mandatory = false,
+                            apkUrl = file.uri,
+                            apkSizeBytes = file.size,
+                            apkSha256 = file.apkSha256 ?: "",
+                            patchUrl = file.patchUri,
+                            patchSizeBytes = file.patchSize,
+                            patchSha256 = file.patchSha256,
+                            patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
+                            patchFromSha256 = file.patchFromSha256
+                        )
+                        val payload = com.modulamobile.updater.PayloadSelector.selectPayload(context, info)
+                        formatFileSize(payload.sizeBytes)
                     }
                     Text(
                         text = stringResource(R.string.upgrade_version_size, sizeString),

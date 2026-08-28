@@ -7,10 +7,11 @@ version = sys.argv[1]
 apk_name = sys.argv[2]
 patch_name = sys.argv[3] if len(sys.argv) > 3 else None
 repo = sys.argv[4] if len(sys.argv) > 4 else "unknown/repo"
+old_apk_path = sys.argv[5] if len(sys.argv) > 5 else None
 
 def sha256(path):
     h = hashlib.sha256()
-    if not os.path.exists(path):
+    if not path or not os.path.exists(path):
         return None
     with open(path, 'rb') as f:
         while chunk := f.read(1024 * 1024):
@@ -48,6 +49,9 @@ if patch_exists:
     manifest['files'][0]['patch_uri'] = f'https://github.com/{repo}/releases/download/v{version}/{patch_name}'
     manifest['files'][0]['patch_size'] = os.path.getsize(patch_name)
     manifest['files'][0]['patch_sha256'] = sha256(patch_name)
+    
+    if old_apk_path and os.path.exists(old_apk_path):
+        manifest['files'][0]['patch_from_sha256'] = sha256(old_apk_path)
 
     # Assuming we patched from the previous version, we need a way to pass the previous version code
     # For now we'll just parse the old version from the patch name (launcher-vOLD_to_vNEW.patch)

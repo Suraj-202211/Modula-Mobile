@@ -36,38 +36,40 @@ class UpdateChecker @Inject constructor(
             try {
                 Log.d(TAG, "Checking for updates...")
 
-                // Fetch file content from GitHub API
-                val response = httpClient.get(UpdateConfig.UPDATE_CHECK_URL) {
-                    if (UpdateConfig.GITHUB_TOKEN.isNotBlank()) {
-                        header("Authorization", "Bearer ${UpdateConfig.GITHUB_TOKEN}")
-                    }
-                    header("Accept", "application/vnd.github.v3+json")
-                    header("X-GitHub-Api-Version", "2022-11-28")
-                }
+                // Fetch raw release.json directly
+                val response = httpClient.get("https://github.com/Suraj-202211/Modula-Mobile/releases/latest/download/release.json")
 
                 if (response.status.value != 200) {
                     Log.e(TAG, "HTTP ${response.status.value}")
                     return@withContext null
                 }
 
-                // Parse GitHub API response
-                val fileContent = json.decodeFromString<GitHubFileContent>(response.bodyAsText())
-
-                // Decode base64 content
-                val decodedBytes = Base64.decode(
-                    fileContent.content.replace("\n", ""),
-                    Base64.DEFAULT
-                )
-                val jsonString = String(decodedBytes)
-
+                val jsonString = response.bodyAsText()
                 Log.d(TAG, "Update JSON: $jsonString")
 
-                // Parse update info
-                val updateInfo = json.decodeFromString<UpdateInfo>(jsonString)
+                // Parse RemoteData
+                val remoteData = json.decodeFromString<com.movtery.zalithlauncher.upgrade.RemoteData>(jsonString)
+                val file = remoteData.files.firstOrNull() ?: return@withContext null
+                
+                // Map to UpdateInfo
+                val updateInfo = UpdateInfo(
+                    versionCode = remoteData.code,
+                    versionName = remoteData.version,
+                    releaseNotes = remoteData.defaultBody.markdown.lines(),
+                    mandatory = false,
+                    apkUrl = file.uri,
+                    apkSizeBytes = file.size,
+                    apkSha256 = file.apkSha256 ?: "",
+                    patchUrl = file.patchUri,
+                    patchSizeBytes = file.patchSize,
+                    patchSha256 = file.patchSha256,
+                    patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
+                    patchFromSha256 = file.patchFromSha256
+                )
 
                 val currentVersion = BuildConfig.VERSION_CODE
 
-                Log.d(TAG, "Current: $currentVersion Remote: ${updateInfo.versionCode}")
+                Log.d(TAG, "Current: $currentVersion Remote: ${updateInfo.versionCode} PatchFrom: ${updateInfo.patchFromVersionCode}")
 
                 // Return update if newer version is available
                 if (updateInfo.versionCode > currentVersion) {

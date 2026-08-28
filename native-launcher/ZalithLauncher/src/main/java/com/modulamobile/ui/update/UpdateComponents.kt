@@ -40,6 +40,16 @@ import java.io.File
 // Mock components to satisfy the prompt's UI if actual components aren't found in scope
 // In a real scenario, use actual FluxCard, FluxButton, etc.
 
+val UpdateInfo.displaySizeBytes: Long
+    @androidx.compose.runtime.Composable
+    get() {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val payload = remember(this) {
+            com.modulamobile.updater.PayloadSelector.selectPayload(context, this)
+        }
+        return payload.sizeBytes
+    }
+
 @Composable
 fun UpdateBanner(
     info: UpdateInfo,
@@ -64,12 +74,13 @@ fun UpdateBanner(
                         color = Color(0xFFFFD700)
                     )
                     Text(
-                        "v${info.versionName} • ${"%.1f".format(info.apkSizeBytes / 1024f / 1024f)}MB",
+                        "v${info.versionName} • ${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
                 }
                 IconButton(onClick = { expanded = !expanded }) {
+
                     Icon(
                         if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                         contentDescription = null,
@@ -139,7 +150,7 @@ fun UpdateProgressSheet(
                         color = Color(0xFFFFD700)
                     )
                     Text(
-                        "${"%.1f".format(info.apkSizeBytes / 1024f / 1024f)}MB update",
+                        "${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB update",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
@@ -233,7 +244,7 @@ fun MandatoryUpdateScreen(
 
             if (state is UpdateState.Available) {
                 androidx.compose.material3.Button(onClick = onUpdate, modifier = Modifier.fillMaxWidth()) {
-                    Text("UPDATE NOW — ${"%.1f".format(info.apkSizeBytes / 1024f / 1024f)}MB")
+                    Text("UPDATE NOW — ${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB")
                 }
             }
         }

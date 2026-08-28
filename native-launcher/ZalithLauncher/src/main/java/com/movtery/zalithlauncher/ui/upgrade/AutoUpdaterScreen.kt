@@ -45,71 +45,119 @@ fun AutoUpdaterScreen(
     LaunchedEffect(file) {
         withContext(Dispatchers.IO) {
             try {
-                val currentVersionCode = com.movtery.zalithlauncher.BuildConfig.VERSION_CODE
-                val usePatch = file.patchUri != null &&
-                               file.patchForVersionCode == currentVersionCode &&
-                               file.patchSize != null &&
-                               file.patchSize < (file.size * 0.7)
+                val info = com.modulamobile.updater.UpdateInfo(
+                    versionCode = data.code,
+                    versionName = data.version,
+                    releaseNotes = emptyList(),
+                    mandatory = false,
+                    apkUrl = file.uri,
+                    apkSizeBytes = file.size,
+                    apkSha256 = file.apkSha256 ?: "",
+                    patchUrl = file.patchUri,
+                    patchSizeBytes = file.patchSize,
+                    patchSha256 = file.patchSha256,
+                    patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
+                    patchFromSha256 = file.patchFromSha256
+                )
+                
+                var payload = com.modulamobile.updater.PayloadSelector.selectPayload(context, info)
+                var isFallback = false
 
-                val downloadUrl = if (usePatch) file.patchUri!! else file.uri
-                
-                statusText = "Downloading update..."
-                val connection = java.net.URL(downloadUrl).openConnection()
-                val contentLength = connection.contentLength
-                
-                val cacheDir = context.cacheDir
-                val downloadFile = File(cacheDir, if (usePatch) "update.patch" else "update.apk")
-                
-                if (downloadFile.exists()) downloadFile.delete()
-                
-                connection.getInputStream().use { input ->
-                    downloadFile.outputStream().use { output ->
-                        val buffer = ByteArray(8192)
-                        var bytesRead = input.read(buffer)
-                        var bytesCopied = 0L
-                        while (bytesRead != -1) {
-                            output.write(buffer, 0, bytesRead)
-                            bytesCopied += bytesRead
-                            if (contentLength > 0) {
-                                progress = bytesCopied.toFloat() / contentLength.toFloat()
+                suspend fun doDownloadAndInstall(currentPayload: com.modulamobile.updater.DownloadPayload) {
+                    val usePatch = currentPayload is com.modulamobile.updater.DownloadPayload.Patch
+                    statusText = if (usePatch) "Downloading patch..." else "Downloading update..."
+                    progress = 0f
+                    
+                    val connection = java.net.URL(currentPayload.url).openConnection()
+                    val contentLength = currentPayload.sizeBytes
+                    
+                    val cacheDir = context.cacheDir
+                    val downloadFile = File(cacheDir, if (usePatch) "update.patch" else "update.apk")
+                    if (downloadFile.exists()) downloadFile.delete()
+                    
+                    connection.getInputStream().use { input ->
+                        downloadFile.outputStream().use { output ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead = input.read(buffer)
+                            var bytesCopied = 0L
+                            while (bytesRead != -1) {
+                                output.write(buffer, 0, bytesRead)
+                                bytesCopied += bytesRead
+                                if (contentLength > 0) {
+                                    progress = bytesCopied.toFloat() / contentLength.toFloat()
+                                }
+                                bytesRead = input.read(buffer)
                             }
-                            bytesRead = input.read(buffer)
                         }
                     }
+
+                    if (usePatch) {
+                        statusText = "Verifying patch integrity..."
+                        if (!verifySha256(downloadFile, currentPayload.sha256)) {
+                            throw Exception("Patch SHA-256 verification failed")
+                        }
+                        android.util.Log.d("UPDATE", "[UPDATE] Patch SHA-256 verified")
+                    }
+                    
+                    val finalApkFile = if (usePatch) {
+                        statusText = "Applying patch... (this may take a moment)"
+                        android.util.Log.d("UPDATE", "[UPDATE] Applying bspatch")
+                        progress = 0f
+                        val currentApkPath = context.applicationInfo.sourceDir
+                        val patchedApk = File(cacheDir, "patched_update.apk")
+                        if (patchedApk.exists()) patchedApk.delete()
+                        
+                        val result = BsPatch.applyPatch(currentApkPath, patchedApk.absolutePath, downloadFile.absolutePath)
+                        if (result != 0) {
+                            throw Exception("Failed to apply bsdiff patch. Code: $result")
+                        }
+                        android.util.Log.d("UPDATE", "[UPDATE] bspatch completed")
+                        if (!patchedApk.exists()) {
+                            throw Exception("Output APK missing after bspatch")
+                        }
+                        patchedApk
+                    } else {
+                        downloadFile
+                    }
+                    
+                    statusText = "Verifying APK integrity..."
+                    val expectedApkSha256 = if (usePatch) info.apkSha256 else currentPayload.sha256
+                    if (!verifySha256(finalApkFile, expectedApkSha256)) {
+                        throw Exception("APK SHA-256 verification failed")
+                    }
+                    android.util.Log.d("UPDATE", "[UPDATE] Result APK SHA-256 verified")
+                    
+                    statusText = "Verifying signature..."
+                    if (!com.modulamobile.updater.SignatureVerifier.verifySignatures(context, finalApkFile)) {
+                        throw Exception("Signing certificate mismatch")
+                    }
+                    android.util.Log.d("UPDATE", "[UPDATE] Signing certificate verified")
+                    
+                    statusText = "Ready to install!"
+                    android.util.Log.d("UPDATE", "[UPDATE] Ready to install")
+                    installApk(context, finalApkFile)
+                    onDismissRequest()
                 }
 
-                if (usePatch) {
-                    statusText = "Verifying patch integrity..."
-                    if (!verifySha256(downloadFile, file.patchSha256)) {
-                        throw Exception("Patch SHA-256 verification failed! The download may be corrupted.")
+                try {
+                    doDownloadAndInstall(payload)
+                } catch (e: Exception) {
+                    android.util.Log.e("UPDATE", "Download/Install failed", e)
+                    if (payload is com.modulamobile.updater.DownloadPayload.Patch) {
+                        android.util.Log.d("UPDATE", "[UPDATE] PATCH FAILED: ${e.message}")
+                        android.util.Log.d("UPDATE", "[UPDATE] Falling back to FULL APK")
+                        
+                        // Fallback logic
+                        payload = com.modulamobile.updater.DownloadPayload.FullApk(
+                            url = info.apkUrl,
+                            sizeBytes = info.apkSizeBytes,
+                            sha256 = info.apkSha256
+                        )
+                        doDownloadAndInstall(payload)
+                    } else {
+                        throw e
                     }
                 }
-                
-                val finalApkFile = if (usePatch) {
-                    statusText = "Applying patch... (this may take a moment)"
-                    progress = 0f
-                    val currentApkPath = context.applicationInfo.sourceDir
-                    val patchedApk = File(cacheDir, "patched_update.apk")
-                    if (patchedApk.exists()) patchedApk.delete()
-                    
-                    val result = BsPatch.applyPatch(currentApkPath, patchedApk.absolutePath, downloadFile.absolutePath)
-                    if (result != 0) {
-                        throw Exception("Failed to apply bsdiff patch. Code: $result")
-                    }
-                    patchedApk
-                } else {
-                    downloadFile
-                }
-                
-                statusText = "Verifying APK integrity..."
-                if (!verifySha256(finalApkFile, file.apkSha256)) {
-                    throw Exception("APK SHA-256 verification failed! The file may be corrupted.")
-                }
-                
-                statusText = "Ready to install!"
-                installApk(context, finalApkFile)
-                onDismissRequest()
-                
             } catch (e: Exception) {
                 e.printStackTrace()
                 hasError = true

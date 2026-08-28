@@ -28,9 +28,31 @@ data class UpdateInfo(
     val patchSizeBytes: Long? = null,
     @SerialName("patchSha256")
     val patchSha256: String? = null,
-    @SerialName("patchForVersionCode")
-    val patchForVersionCode: Int? = null
+    @SerialName("patchFromVersionCode")
+    val patchFromVersionCode: Int? = null,
+    @SerialName("patchFromSha256")
+    val patchFromSha256: String? = null
 )
+
+sealed class DownloadPayload {
+    abstract val url: String
+    abstract val sizeBytes: Long
+    abstract val sha256: String
+
+    data class Patch(
+        override val url: String,
+        override val sizeBytes: Long,
+        override val sha256: String,
+        val sourceVersionCode: Int,
+        val sourceSha256: String
+    ) : DownloadPayload()
+
+    data class FullApk(
+        override val url: String,
+        override val sizeBytes: Long,
+        override val sha256: String
+    ) : DownloadPayload()
+}
 
 // GitHub API response for file content
 @Serializable
