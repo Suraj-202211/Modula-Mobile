@@ -83,6 +83,7 @@ fun UpgradeFilesDialog(
         current = current,
         itemLayout = { item, isCurrent, _, onClick ->
             UpgradeFileLayout(
+                data = data,
                 modifier = Modifier.fillMaxWidth(),
                 file = item,
                 currentArch = currentArch,
@@ -101,6 +102,7 @@ fun UpgradeFilesDialog(
 
 @Composable
 private fun UpgradeFileLayout(
+    data: RemoteData,
     file: RemoteData.RemoteFile,
     currentArch: RemoteData.RemoteFile.Arch,
     selected: Boolean,
@@ -108,6 +110,7 @@ private fun UpgradeFileLayout(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)

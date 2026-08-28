@@ -88,6 +88,14 @@ class UpdateViewModel @Inject constructor(
                     return@launch
                 }
 
+                _state.value = UpdateState.Downloading(
+                    info = info,
+                    progress = 0f,
+                    downloadedMb = 0f,
+                    totalMb = info.displaySizeBytes / 1024f / 1024f,
+                    speedMbps = 0f
+                )
+
                 val apkFile = downloader.download(info) { progress, dlMb, totalMb, speed ->
                     _state.value = UpdateState.Downloading(
                         info = info,
