@@ -565,6 +565,7 @@ class MainActivity : BaseAppCompatActivity() {
                                     is UpdateState.Downloading -> s.info
                                     is UpdateState.Installing -> s.info
                                     is UpdateState.ReadyToInstall -> s.info
+                                    is UpdateState.Failed -> s.info
                                     else -> null
                                 }
                                 if (info != null) {
