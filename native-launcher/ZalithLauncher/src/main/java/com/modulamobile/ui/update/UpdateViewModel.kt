@@ -92,7 +92,7 @@ class UpdateViewModel @Inject constructor(
                     info = info,
                     progress = 0f,
                     downloadedMb = 0f,
-                    totalMb = info.displaySizeBytes / 1024f / 1024f,
+                    totalMb = info.apkSizeBytes / 1024f / 1024f,
                     speedMbps = 0f
                 )
 
