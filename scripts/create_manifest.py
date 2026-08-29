@@ -20,9 +20,15 @@ def sha256(path):
 
 patch_exists = patch_name is not None and patch_name != "none" and os.path.exists(patch_name)
 
-# Strip out any non-numeric characters for the version code (e.g. 0.0.1-test -> 001 -> 1)
-numeric_version = ''.join(filter(str.isdigit, version))
-version_code = int(numeric_version) if numeric_version else 1
+# Read version code from gradle.properties
+version_code = 1
+gradle_props = 'native-launcher/ZalithLauncher/gradle.properties'
+if os.path.exists(gradle_props):
+    with open(gradle_props, 'r') as f:
+        for line in f:
+            if line.startswith('launcher_version_code='):
+                version_code = int(line.split('=')[1].strip())
+                break
 
 # Our RemoteData structure
 manifest = {

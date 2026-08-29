@@ -34,18 +34,18 @@ class UpdateChecker @Inject constructor(
     suspend fun checkForUpdate(): UpdateInfo? =
         withContext(Dispatchers.IO) {
             try {
-                Log.d(TAG, "Checking for updates...")
-
+                Log.d(TAG, "[UPDATE] Starting update check")
+                
                 // Fetch raw release.json directly
                 val response = httpClient.get("https://github.com/Suraj-202211/Modula-Mobile/releases/latest/download/release.json")
 
                 if (response.status.value != 200) {
-                    Log.e(TAG, "HTTP ${response.status.value}")
+                    Log.e(TAG, "[UPDATE] HTTP ${response.status.value}")
                     return@withContext null
                 }
 
                 val jsonString = response.bodyAsText()
-                Log.d(TAG, "Update JSON: $jsonString")
+                Log.d(TAG, "[UPDATE] Update JSON: $jsonString")
 
                 // Parse RemoteData
                 val remoteData = json.decodeFromString<com.movtery.zalithlauncher.upgrade.RemoteData>(jsonString)
@@ -68,15 +68,28 @@ class UpdateChecker @Inject constructor(
                 )
 
                 val currentVersion = BuildConfig.VERSION_CODE
+                val currentVersionName = BuildConfig.VERSION_NAME
+                val packageName = context.packageName
 
-                Log.d(TAG, "Current: $currentVersion Remote: ${updateInfo.versionCode} PatchFrom: ${updateInfo.patchFromVersionCode}")
+                Log.d(TAG, "[UPDATE] Installed package: $packageName")
+                Log.d(TAG, "[UPDATE] Installed versionCode: $currentVersion")
+                Log.d(TAG, "[UPDATE] Installed versionName: $currentVersionName")
+                Log.d(TAG, "[UPDATE] Remote versionCode: ${updateInfo.versionCode}")
+                Log.d(TAG, "[UPDATE] Remote versionName: ${updateInfo.versionName}")
+                Log.d(TAG, "[UPDATE] Remote release URL: ${updateInfo.apkUrl}")
+                
+                Log.d(TAG, "[UPDATE] Comparing remoteVersionCode=${updateInfo.versionCode} with installedVersionCode=$currentVersion")
+                val isUpdateAvailable = updateInfo.versionCode > currentVersion
+                Log.d(TAG, "[UPDATE] ${updateInfo.versionCode} > $currentVersion = $isUpdateAvailable")
 
                 // Return update if newer version is available
-                if (updateInfo.versionCode > currentVersion) {
-                    Log.d(TAG, "Update available: " + updateInfo.versionName)
+                if (isUpdateAvailable) {
+                    Log.d(TAG, "[UPDATE] Update available: " + updateInfo.versionName)
+                    Log.d(TAG, "[UPDATE] Update check result: UPDATE_AVAILABLE")
                     updateInfo
                 } else {
-                    Log.d(TAG, "Already up to date")
+                    Log.d(TAG, "[UPDATE] Already up to date")
+                    Log.d(TAG, "[UPDATE] Update check result: NO_UPDATE")
                     null
                 }
 
