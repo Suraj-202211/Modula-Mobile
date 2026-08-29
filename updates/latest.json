@@ -1,12 +1,12 @@
 {
-  "versionCode": 15,
-  "versionName": "1.0.15",
+  "versionCode": 16,
+  "versionName": "1.0.16",
   "releaseNotes": [
-    "Release 1.0.15 of Modula Mobile"
+    "Release 1.0.16 of Modula Mobile"
   ],
   "mandatory": false,
-  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.15/launcher-v1.0.15.apk",
-  "apkSizeBytes": 228997579,
-  "apkSha256": "37D9BF901896A76459C3D5C9CD77F38B0E3D6F0520FE0FC7FA1DA62EDE21216E",
-  "releaseDate": "2026-08-29","patchUrl":"https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.15/launcher-v1.0.14_to_v1.0.15.patch","patchSizeBytes":5752656,"patchSha256":"9C954F77CF644A7510CA63049C681743DBEA252E4A9730BCCFEB36C8F5327441","patchForVersionCode":14
+  "apkUrl": "https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.16/launcher-v1.0.16.apk",
+  "apkSizeBytes": 228996011,
+  "apkSha256": "D4A5EFB459AB1DFFD20366122062AF3E84A5EC88D2101408006E85B5D28EF6AE",
+  "releaseDate": "2026-08-29","patchUrl":"https://github.com/Suraj-202211/Modula-Mobile/releases/download/v1.0.16/launcher-v1.0.15_to_v1.0.16.patch","patchSizeBytes":5645047,"patchSha256":"692EEED32209544F8EE4A60FBE21840F7789AA2F272A94A72772757D5C4DC6FE","patchForVersionCode":15
 }
