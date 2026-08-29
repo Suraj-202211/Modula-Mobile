@@ -62,7 +62,9 @@ fun UpdateBanner(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .animateContentSize()
+            .animateContentSize(),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFF10101C)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCC9900))
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -71,12 +73,12 @@ fun UpdateBanner(
                     Text(
                         "Update Available",
                         fontSize = 18.sp,
-                        color = Color(0xFFFFD700)
+                        color = Color(0xFFFFFFFF)
                     )
                     Text(
                         "v${info.versionName} • ${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color(0xFFAAAAAA)
                     )
                 }
                 IconButton(onClick = { expanded = !expanded }) {
@@ -96,7 +98,7 @@ fun UpdateBanner(
                 info.releaseNotes.forEach { note ->
                     Row(modifier = Modifier.padding(vertical = 2.dp)) {
                         Text("• ", color = Color(0xFFFFD700))
-                        Text(note, color = Color.White)
+                        Text(note, color = Color(0xFFF2F2F2))
                     }
                 }
                 Spacer(Modifier.height(12.dp))
@@ -107,12 +109,14 @@ fun UpdateBanner(
             Row(Modifier.fillMaxWidth()) {
                 androidx.compose.material3.Button(
                     onClick = onUpdate,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color(0xFF060609))
                 ) { Text("UPDATE NOW") }
                 Spacer(Modifier.width(8.dp))
                 androidx.compose.material3.TextButton(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(contentColor = Color(0xFFFFD700))
                 ) { Text("LATER") }
             }
         }
@@ -130,7 +134,9 @@ fun UpdateProgressSheet(
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
+            .padding(24.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFF161626)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0x66FFD700))
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(
@@ -152,7 +158,7 @@ fun UpdateProgressSheet(
                     Text(
                         "${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB update",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = Color(0xFFAAAAAA)
                     )
                 }
             }
@@ -168,13 +174,14 @@ fun UpdateProgressSheet(
                     )
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${"%.1f".format(state.downloadedMb)}MB / ${"%.1f".format(state.totalMb)}MB", color = Color.Gray)
+                        Text("${"%.1f".format(state.downloadedMb)}MB / ${"%.1f".format(state.totalMb)}MB", color = Color(0xFFAAAAAA))
                         Text("${"%.1f".format(state.speedMbps)} MB/s", color = Color(0xFFFFD700))
                     }
                     Spacer(Modifier.height(16.dp))
                     androidx.compose.material3.Button(
                         onClick = onCancel,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color(0xFF060609))
                     ) { Text("CANCEL") }
                 }
 
@@ -182,25 +189,27 @@ fun UpdateProgressSheet(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(color = Color(0xFFFFD700), modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(12.dp))
-                        Text("Verifying download...", color = Color(0xFFFFD700))
+                        Text("Processing update...", color = Color(0xFFFFD700))
                     }
                 }
 
                 is UpdateState.ReadyToInstall -> {
-                    Text("✅ Download complete! Ready to install.", color = Color.Green)
+                    Text("✅ Download complete! Ready to install.", color = Color(0xFF22C55E))
                     Spacer(Modifier.height(16.dp))
                     androidx.compose.material3.Button(
                         onClick = { onInstall(state.apkFile) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color(0xFF060609))
                     ) { Text("⚡ INSTALL NOW") }
                 }
 
                 is UpdateState.Failed -> {
-                    Text("❌ ${state.message}", color = Color.Red)
+                    Text("❌ ${state.message}", color = Color(0xFFEF4444))
                     Spacer(Modifier.height(12.dp))
                     androidx.compose.material3.Button(
                         onClick = onRetry,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color(0xFF060609))
                     ) { Text("TRY AGAIN") }
                 }
 
@@ -228,14 +237,18 @@ fun MandatoryUpdateScreen(
             Spacer(Modifier.height(24.dp))
             Text("UPDATE REQUIRED", fontSize = 24.sp, color = Color(0xFFFFD700))
             Spacer(Modifier.height(8.dp))
-            Text("Version ${info.versionName} is required to continue.", color = Color.Gray, textAlign = TextAlign.Center)
+            Text("Version ${info.versionName} is required to continue.", color = Color(0xFFAAAAAA), textAlign = TextAlign.Center)
 
             Spacer(Modifier.height(20.dp))
-            androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth()) {
+            androidx.compose.material3.Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Color(0xFF10101C)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCC9900))
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Text("WHAT'S NEW", color = Color(0xFFFFD700))
                     Spacer(Modifier.height(8.dp))
-                    info.releaseNotes.forEach { Text("• $it", color = Color.White) }
+                    info.releaseNotes.forEach { Text("• $it", color = Color(0xFFF2F2F2)) }
                 }
             }
 
@@ -243,7 +256,11 @@ fun MandatoryUpdateScreen(
             UpdateProgressSheet(state = state, info = info, onInstall = { }, onCancel = { }, onRetry = onUpdate)
 
             if (state is UpdateState.Available) {
-                androidx.compose.material3.Button(onClick = onUpdate, modifier = Modifier.fillMaxWidth()) {
+                androidx.compose.material3.Button(
+                    onClick = onUpdate,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color(0xFF060609))
+                ) {
                     Text("UPDATE NOW — ${"%.1f".format(info.displaySizeBytes / 1024f / 1024f)}MB")
                 }
             }
