@@ -53,6 +53,9 @@ class ApkDownloader @Inject constructor(
 
             val response = httpClient.get(currentPayload.url) {
                 header("User-Agent", "ModulaMobile/${BuildConfig.VERSION_NAME}")
+                io.ktor.client.plugins.timeout {
+                    requestTimeoutMillis = io.ktor.client.plugins.HttpTimeout.INFINITE_TIMEOUT_MS
+                }
             }
 
             if (!response.status.isSuccess()) {
