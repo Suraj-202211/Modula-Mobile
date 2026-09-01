@@ -11,6 +11,8 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.contentLength
 import io.ktor.http.isSuccess
 import io.ktor.utils.io.readAvailable
+import io.ktor.client.plugins.timeout
+import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,8 +55,8 @@ class ApkDownloader @Inject constructor(
 
             val response = httpClient.get(currentPayload.url) {
                 header("User-Agent", "ModulaMobile/${BuildConfig.VERSION_NAME}")
-                io.ktor.client.plugins.timeout {
-                    requestTimeoutMillis = io.ktor.client.plugins.HttpTimeout.INFINITE_TIMEOUT_MS
+                timeout {
+                    requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
                 }
             }
 
