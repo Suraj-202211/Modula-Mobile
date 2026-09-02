@@ -56,7 +56,7 @@ class ApkDownloader @Inject constructor(
             val response = httpClient.get(currentPayload.url) {
                 header("User-Agent", "ModulaMobile/${BuildConfig.VERSION_NAME}")
                 timeout {
-                    requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+                    requestTimeoutMillis = Long.MAX_VALUE
                 }
             }
 
