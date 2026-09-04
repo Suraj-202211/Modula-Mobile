@@ -53,55 +53,55 @@ class ApkDownloader @Inject constructor(
                 downloadFile.delete()
             }
 
-            val response = httpClient.get(currentPayload.url) {
+            httpClient.prepareGet(currentPayload.url) {
                 header("User-Agent", "ModulaMobile/${BuildConfig.VERSION_NAME}")
                 timeout {
-                    requestTimeoutMillis = Long.MAX_VALUE
+                    requestTimeoutMillis = null
                 }
-            }
+            }.execute { response ->
+                if (!response.status.isSuccess()) {
+                    throw IOException("Download failed: ${response.status.value}")
+                }
 
-            if (!response.status.isSuccess()) {
-                throw IOException("Download failed: ${response.status.value}")
-            }
+                val totalBytes = currentPayload.sizeBytes
+                var downloadedBytes = 0L
+                var lastTime = System.currentTimeMillis()
+                var lastBytes = 0L
 
-            val totalBytes = currentPayload.sizeBytes
-            var downloadedBytes = 0L
-            var lastTime = System.currentTimeMillis()
-            var lastBytes = 0L
+                FileOutputStream(downloadFile).use { output ->
+                    val channel = response.bodyAsChannel()
+                    val buffer = ByteArray(8192)
+                    while (!channel.isClosedForRead) {
+                        val read = channel.readAvailable(buffer, 0, buffer.size)
+                        if (read <= 0) break
+                        output.write(buffer, 0, read)
+                        downloadedBytes += read
 
-            FileOutputStream(downloadFile).use { output ->
-                val channel = response.bodyAsChannel()
-                val buffer = ByteArray(8192)
-                while (!channel.isClosedForRead) {
-                    val read = channel.readAvailable(buffer, 0, buffer.size)
-                    if (read <= 0) break
-                    output.write(buffer, 0, read)
-                    downloadedBytes += read
+                        val now = System.currentTimeMillis()
+                        if (now - lastTime >= 200) {
+                            val elapsed = (now - lastTime).toFloat() / 1000f
+                            val speed = ((downloadedBytes - lastBytes).toFloat() / 1024f / 1024f) / elapsed
 
-                    val now = System.currentTimeMillis()
-                    if (now - lastTime >= 200) {
-                        val elapsed = (now - lastTime).toFloat() / 1000f
-                        val speed = ((downloadedBytes - lastBytes).toFloat() / 1024f / 1024f) / elapsed
+                            onProgress(
+                                downloadedBytes.toFloat() / totalBytes.toFloat(),
+                                downloadedBytes.toFloat() / 1024f / 1024f,
+                                totalBytes.toFloat() / 1024f / 1024f,
+                                speed
+                            )
 
-                        onProgress(
-                            downloadedBytes.toFloat() / totalBytes.toFloat(),
-                            downloadedBytes.toFloat() / 1024f / 1024f,
-                            totalBytes.toFloat() / 1024f / 1024f,
-                            speed
-                        )
-
-                        lastTime = now
-                        lastBytes = downloadedBytes
+                            lastTime = now
+                            lastBytes = downloadedBytes
+                        }
                     }
                 }
-            }
 
-            onProgress(
-                1f,
-                downloadedBytes.toFloat() / 1024f / 1024f,
-                totalBytes.toFloat() / 1024f / 1024f,
-                0f
-            )
+                onProgress(
+                    1f,
+                    downloadedBytes.toFloat() / 1024f / 1024f,
+                    totalBytes.toFloat() / 1024f / 1024f,
+                    0f
+                )
+            }
 
             if (usePatch) {
                 if (!verifySha256(downloadFile, currentPayload.sha256)) {

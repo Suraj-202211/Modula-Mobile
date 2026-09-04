@@ -33,7 +33,8 @@ class UpdateViewModel @Inject constructor(
     private val downloader: ApkDownloader,
     private val installer: ApkInstaller,
     private val dataStore: DataStore<Preferences>,
-    private val remoteConfigManager: RemoteConfigManager
+    private val remoteConfigManager: RemoteConfigManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
@@ -88,11 +89,15 @@ class UpdateViewModel @Inject constructor(
                     return@launch
                 }
 
+                val initialPayload = com.modulamobile.updater.PayloadSelector.selectPayload(
+                    context, info
+                )
+
                 _state.value = UpdateState.Downloading(
                     info = info,
                     progress = 0f,
                     downloadedMb = 0f,
-                    totalMb = info.apkSizeBytes / 1024f / 1024f,
+                    totalMb = initialPayload.sizeBytes / 1024f / 1024f,
                     speedMbps = 0f
                 )
 
