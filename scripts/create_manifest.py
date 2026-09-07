@@ -8,6 +8,7 @@ apk_name = sys.argv[2]
 patch_name = sys.argv[3] if len(sys.argv) > 3 else None
 repo = sys.argv[4] if len(sys.argv) > 4 else "unknown/repo"
 old_apk_path = sys.argv[5] if len(sys.argv) > 5 else None
+old_version_code_arg = sys.argv[6] if len(sys.argv) > 6 else None
 
 def sha256(path):
     h = hashlib.sha256()
@@ -30,6 +31,8 @@ if os.path.exists(gradle_props):
                 version_code = int(line.split('=')[1].strip())
                 break
 
+new_apk_sha = sha256(apk_name)
+
 # Our RemoteData structure
 manifest = {
     'code': version_code,
@@ -41,7 +44,7 @@ manifest = {
             'uri': f'https://github.com/{repo}/releases/download/v{version}/{apk_name}',
             'arch': "all",
             'size': os.path.getsize(apk_name) if os.path.exists(apk_name) else 0,
-            'apk_sha256': sha256(apk_name)
+            'apk_sha256': new_apk_sha
         }
     ],
     'default_body': {
@@ -55,24 +58,33 @@ if patch_exists:
     manifest['files'][0]['patch_uri'] = f'https://github.com/{repo}/releases/download/v{version}/{patch_name}'
     manifest['files'][0]['patch_size'] = os.path.getsize(patch_name)
     manifest['files'][0]['patch_sha256'] = sha256(patch_name)
+    manifest['files'][0]['patch_to_sha256'] = new_apk_sha
+    manifest['files'][0]['patch_to_version_code'] = version_code
     
     if old_apk_path and os.path.exists(old_apk_path):
         manifest['files'][0]['patch_from_sha256'] = sha256(old_apk_path)
 
-    # Assuming we patched from the previous version, we need a way to pass the previous version code
-    # For now we'll just parse the old version from the patch name (launcher-vOLD_to_vNEW.patch)
-    try:
-        old_v = patch_name.split('_to_')[0].replace('launcher-v', '')
-        old_parts = old_v.split('.')
-        if len(old_parts) >= 3:
-            manifest['files'][0]['patch_for_version_code'] = int(old_parts[-1])
-        else:
-            old_numeric = ''.join(filter(str.isdigit, old_v))
-            manifest['files'][0]['patch_for_version_code'] = int(old_numeric) if old_numeric else 1
-    except:
-        pass
+    # Determine old version code
+    old_version_code = None
+    if old_version_code_arg and old_version_code_arg.strip().isdigit():
+        old_version_code = int(old_version_code_arg.strip())
+    else:
+        try:
+            old_v = patch_name.split('_to_')[0].replace('launcher-v', '')
+            old_parts = old_v.split('.')
+            if len(old_parts) >= 3:
+                old_version_code = int(old_parts[-1])
+            else:
+                old_numeric = ''.join(filter(str.isdigit, old_v))
+                old_version_code = int(old_numeric) if old_numeric else 1
+        except:
+            old_version_code = 1
+
+    manifest['files'][0]['patch_from_version_code'] = old_version_code
+    manifest['files'][0]['patch_for_version_code'] = old_version_code  # backwards compatibility
 
 with open('release.json', 'w', encoding='utf-8') as f:
     json.dump(manifest, f, indent=2, ensure_ascii=False)
 
 print('release.json generated')
+

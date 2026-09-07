@@ -30,8 +30,12 @@ data class UpdateInfo(
     val patchSha256: String? = null,
     @SerialName("patchFromVersionCode")
     val patchFromVersionCode: Int? = null,
+    @SerialName("patchToVersionCode")
+    val patchToVersionCode: Int? = null,
     @SerialName("patchFromSha256")
-    val patchFromSha256: String? = null
+    val patchFromSha256: String? = null,
+    @SerialName("patchToSha256")
+    val patchToSha256: String? = null
 )
 
 sealed class DownloadPayload {
@@ -44,13 +48,15 @@ sealed class DownloadPayload {
         override val sizeBytes: Long,
         override val sha256: String,
         val sourceVersionCode: Int,
+        val targetVersionCode: Int,
         val sourceSha256: String
     ) : DownloadPayload()
 
     data class FullApk(
         override val url: String,
         override val sizeBytes: Long,
-        override val sha256: String
+        override val sha256: String,
+        val targetVersionCode: Int
     ) : DownloadPayload()
 }
 

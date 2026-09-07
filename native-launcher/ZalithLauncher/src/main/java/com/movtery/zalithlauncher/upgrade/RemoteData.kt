@@ -109,8 +109,12 @@ data class RemoteData(
         val patchForVersionCode: Int? = null,
         @SerialName("patch_for_version_code") // Keep legacy name if present
         val patchForVersionCodeLegacy: Int? = null,
+        @SerialName("patch_to_version_code")
+        val patchToVersionCode: Int? = null,
         @SerialName("patch_from_sha256")
-        val patchFromSha256: String? = null
+        val patchFromSha256: String? = null,
+        @SerialName("patch_to_sha256")
+        val patchToSha256: String? = null
     ) {
         @Serializable
         enum class Arch {

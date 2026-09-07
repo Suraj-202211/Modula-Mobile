@@ -31,20 +31,19 @@ class ApkDownloader @Inject constructor(
 ) {
     suspend fun download(
         info: UpdateInfo,
+        payload: DownloadPayload = PayloadSelector.selectPayload(context, info),
         onProgress: (progress: Float, downloadedMb: Float, totalMb: Float, speedMbps: Float) -> Unit
     ): File = withContext(Dispatchers.IO) {
 
         val updateDir = File(context.filesDir, "updates")
         updateDir.mkdirs()
 
-        // Clean old APKs first
+        // Clean old APKs and patches first
         updateDir.listFiles()?.forEach {
-            if (it.name.endsWith(".apk")) {
+            if (it.name.endsWith(".apk") || it.name.endsWith(".patch")) {
                 it.delete()
             }
         }
-
-        val payload = PayloadSelector.selectPayload(context, info)
         
         suspend fun doDownload(currentPayload: DownloadPayload): File {
             val usePatch = currentPayload is DownloadPayload.Patch
@@ -61,7 +60,7 @@ class ApkDownloader @Inject constructor(
                 }
             }.execute { response ->
                 if (!response.status.isSuccess()) {
-                    throw IOException("Download failed: ${response.status.value}")
+                    throw IOException("Download failed: HTTP ${response.status.value}")
                 }
 
                 val totalBytes = currentPayload.sizeBytes
@@ -81,10 +80,10 @@ class ApkDownloader @Inject constructor(
                         val now = System.currentTimeMillis()
                         if (now - lastTime >= 200) {
                             val elapsed = (now - lastTime).toFloat() / 1000f
-                            val speed = ((downloadedBytes - lastBytes).toFloat() / 1024f / 1024f) / elapsed
+                            val speed = if (elapsed > 0f) ((downloadedBytes - lastBytes).toFloat() / 1024f / 1024f) / elapsed else 0f
 
                             onProgress(
-                                downloadedBytes.toFloat() / totalBytes.toFloat(),
+                                if (totalBytes > 0) downloadedBytes.toFloat() / totalBytes.toFloat() else 0f,
                                 downloadedBytes.toFloat() / 1024f / 1024f,
                                 totalBytes.toFloat() / 1024f / 1024f,
                                 speed
@@ -106,6 +105,7 @@ class ApkDownloader @Inject constructor(
 
             if (usePatch) {
                 if (!verifySha256(downloadFile, currentPayload.sha256)) {
+                    downloadFile.delete()
                     throw IOException("Patch SHA-256 verification failed")
                 }
                 
@@ -114,26 +114,35 @@ class ApkDownloader @Inject constructor(
                 if (apkFile.exists()) apkFile.delete()
                 
                 val result = BsPatch.applyPatch(currentApkPath, apkFile.absolutePath, downloadFile.absolutePath)
+                downloadFile.delete() // remove patch file after applying
+                
                 if (result != 0) {
                     if (apkFile.exists()) apkFile.delete()
                     throw IOException("Failed to apply bsdiff patch. Code: $result")
                 }
-                downloadFile.delete()
+                
+                if (!apkFile.exists()) {
+                    throw IOException("Output APK missing after bspatch")
+                }
                 
                 if (!verifySha256(apkFile, info.apkSha256)) {
-                    throw IOException("Result APK SHA-256 verification failed")
+                    apkFile.delete()
+                    throw IOException("Result APK SHA-256 verification failed (expected: ${info.apkSha256})")
                 }
                 
                 if (!SignatureVerifier.verifySignatures(context, apkFile)) {
+                    apkFile.delete()
                     throw IOException("Signing certificate verification failed")
                 }
                 
                 return apkFile
             } else {
                 if (!verifySha256(downloadFile, currentPayload.sha256)) {
+                    downloadFile.delete()
                     throw IOException("Full APK SHA-256 verification failed")
                 }
                 if (!SignatureVerifier.verifySignatures(context, downloadFile)) {
+                    downloadFile.delete()
                     throw IOException("Signing certificate verification failed")
                 }
                 return downloadFile
@@ -145,13 +154,17 @@ class ApkDownloader @Inject constructor(
         } catch (e: Exception) {
             android.util.Log.e("UPDATE", "Download failed", e)
             if (payload is DownloadPayload.Patch) {
-                android.util.Log.d("UPDATE", "[UPDATE] PATCH FAILED: ${e.message}")
-                android.util.Log.d("UPDATE", "[UPDATE] Falling back to FULL APK")
+                android.util.Log.w("UPDATE", "[UPDATE] PATCH FAILED: ${e.message}")
+                android.util.Log.i("UPDATE", "[UPDATE] Falling back to FULL APK")
+                
+                File(updateDir, "ModulaMobile-${info.versionName}.patch").delete()
+                File(updateDir, "ModulaMobile-${info.versionName}.apk").delete()
                 
                 val fallbackPayload = DownloadPayload.FullApk(
                     url = info.apkUrl,
                     sizeBytes = info.apkSizeBytes,
-                    sha256 = info.apkSha256
+                    sha256 = info.apkSha256,
+                    targetVersionCode = info.versionCode
                 )
                 doDownload(fallbackPayload)
             } else {

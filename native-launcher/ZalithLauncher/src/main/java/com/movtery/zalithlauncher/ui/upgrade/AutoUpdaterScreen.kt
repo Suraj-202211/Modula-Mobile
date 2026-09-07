@@ -57,7 +57,9 @@ fun AutoUpdaterScreen(
                     patchSizeBytes = file.patchSize,
                     patchSha256 = file.patchSha256,
                     patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
-                    patchFromSha256 = file.patchFromSha256
+                    patchToVersionCode = file.patchToVersionCode ?: data.code,
+                    patchFromSha256 = file.patchFromSha256,
+                    patchToSha256 = file.patchToSha256 ?: file.apkSha256
                 )
                 
                 var payload = com.modulamobile.updater.PayloadSelector.selectPayload(context, info)

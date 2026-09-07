@@ -101,7 +101,7 @@ class UpdateViewModel @Inject constructor(
                     speedMbps = 0f
                 )
 
-                val apkFile = downloader.download(info) { progress, dlMb, totalMb, speed ->
+                val apkFile = downloader.download(info, initialPayload) { progress, dlMb, totalMb, speed ->
                     if (progress >= 1f) {
                         _state.value = UpdateState.Installing(info)
                     } else {

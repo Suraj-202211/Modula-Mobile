@@ -64,7 +64,9 @@ class UpdateChecker @Inject constructor(
                     patchSizeBytes = file.patchSize,
                     patchSha256 = file.patchSha256,
                     patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
-                    patchFromSha256 = file.patchFromSha256
+                    patchToVersionCode = file.patchToVersionCode ?: remoteData.code,
+                    patchFromSha256 = file.patchFromSha256,
+                    patchToSha256 = file.patchToSha256 ?: file.apkSha256
                 )
 
                 val currentVersion = BuildConfig.VERSION_CODE

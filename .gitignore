@@ -20,3 +20,4 @@ temp_clone/
 temp_logs/
 release_*.json
 release_assets.json
+jdk*/

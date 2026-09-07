@@ -48,6 +48,7 @@ jobs:
           VERSION=${GITHUB_REF_NAME#v}
           cp native-launcher/ZalithLauncher/build/outputs/apk/release/*.apk \
              launcher-v${VERSION}.apk
+          cp launcher-v${VERSION}.apk ModulaMobile.apk
 
       - name: Free Memory (Kill Gradle)
         run: |
@@ -58,10 +59,22 @@ jobs:
       # Download previous release APK
       # ------------------------------------------------------------
 
-      - name: Get previous tag
+      - name: Find previous release with APK
         id: prev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV=$(git tag --sort=-creatordate | grep '^v' | grep -v "${GITHUB_REF_NAME}" | head -n 1)
+          echo "Finding previous valid release APK..."
+          PREV=""
+          for tag in $(git tag --sort=-creatordate | grep '^v' | grep -v "^${GITHUB_REF_NAME}$"); do
+            VERSION=${tag#v}
+            echo "Checking tag $tag for launcher-v${VERSION}.apk..."
+            if gh release view "$tag" --json assets -q ".assets[].name" 2>/dev/null | grep -q "launcher-v${VERSION}.apk"; then
+              echo "Found matching previous release with APK: $tag"
+              PREV="$tag"
+              break
+            fi
+          done
           echo "prev=$PREV" >> $GITHUB_OUTPUT
 
       - name: Download previous APK
@@ -71,6 +84,7 @@ jobs:
         run: |
           PREV_TAG="${{ steps.prev.outputs.prev }}"
           VERSION=${PREV_TAG#v}
+          mkdir -p previous
           gh release download $PREV_TAG \
             --pattern "launcher-v${VERSION}.apk" \
             --dir previous || echo "Previous release not found or pattern mismatch"
@@ -85,7 +99,6 @@ jobs:
           swap-size-gb: 4
 
       - name: Generate patch
-        continue-on-error: true
         if: steps.prev.outputs.prev != ''
         run: |
           NEW=${GITHUB_REF_NAME#v}
@@ -93,7 +106,9 @@ jobs:
           OLD=${PREV_TAG#v}
           
           if [ -f "previous/launcher-v${OLD}.apk" ]; then
+            echo "Generating patch from previous/launcher-v${OLD}.apk to launcher-v${NEW}.apk"
             bsdiff previous/launcher-v${OLD}.apk launcher-v${NEW}.apk launcher-v${OLD}_to_v${NEW}.patch
+            ls -lh launcher-v${OLD}_to_v${NEW}.patch
           else
             echo "Previous APK not downloaded, skipping patch generation."
           fi
@@ -113,12 +128,22 @@ jobs:
             PATCH_FILE="none"
           fi
 
+          OLD_APK="previous/launcher-v${OLD}.apk"
+          OLD_VERSION_CODE=""
+          if [ -f "$OLD_APK" ]; then
+            APK_ANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+            if [ -x "$APK_ANALYZER" ]; then
+              OLD_VERSION_CODE=$($APK_ANALYZER manifest version-code "$OLD_APK" 2>/dev/null || true)
+            fi
+          fi
+
           python scripts/create_manifest.py \
             ${VERSION} \
             launcher-v${VERSION}.apk \
             ${PATCH_FILE} \
             ${{ github.repository }} \
-            "previous/launcher-v${OLD}.apk"
+            "$OLD_APK" \
+            "$OLD_VERSION_CODE"
 
       # ------------------------------------------------------------
       # Create GitHub Release
@@ -127,6 +152,7 @@ jobs:
       - name: Verify APK exists
         run: |
           test -f launcher-v${GITHUB_REF_NAME#v}.apk
+          test -f ModulaMobile.apk
           echo "APK verified"
 
       - name: Create Release
@@ -136,6 +162,7 @@ jobs:
           generate_release_notes: true
           files: |
             launcher-v*.apk
+            ModulaMobile.apk
             launcher-v*_to_v*.patch
             release.json
 
