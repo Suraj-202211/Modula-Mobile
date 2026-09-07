@@ -912,6 +912,7 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
+        updateViewModel.checkSilently()
     }
 
     @SuppressLint("RestrictedApi")
@@ -968,10 +969,5 @@ class MainActivity : BaseAppCompatActivity() {
                     "Modrinth FAILED: ${e.message}")
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateViewModel.checkSilently()
     }
 }
