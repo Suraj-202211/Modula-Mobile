@@ -48,7 +48,7 @@ sealed class DownloadPayload {
         override val sizeBytes: Long,
         override val sha256: String,
         val sourceVersionCode: Int,
-        val targetVersionCode: Int,
+        val targetVersionCode: Int = 0,
         val sourceSha256: String
     ) : DownloadPayload()
 
@@ -56,7 +56,7 @@ sealed class DownloadPayload {
         override val url: String,
         override val sizeBytes: Long,
         override val sha256: String,
-        val targetVersionCode: Int
+        val targetVersionCode: Int = 0
     ) : DownloadPayload()
 }
 

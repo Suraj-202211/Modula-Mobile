@@ -153,7 +153,8 @@ fun AutoUpdaterScreen(
                         payload = com.modulamobile.updater.DownloadPayload.FullApk(
                             url = info.apkUrl,
                             sizeBytes = info.apkSizeBytes,
-                            sha256 = info.apkSha256
+                            sha256 = info.apkSha256,
+                            targetVersionCode = info.versionCode
                         )
                         doDownloadAndInstall(payload)
                     } else {
