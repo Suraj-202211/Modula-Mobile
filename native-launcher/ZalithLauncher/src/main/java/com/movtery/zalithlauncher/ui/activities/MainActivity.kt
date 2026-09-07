@@ -538,14 +538,15 @@ class MainActivity : BaseAppCompatActivity() {
 
                 // OTA Updates UI Elements
                 val updateState by updateViewModel.state.collectAsStateWithLifecycle()
+                val isBannerDismissed by updateViewModel.isBannerDismissed.collectAsStateWithLifecycle()
 
                 Box(Modifier.fillMaxSize()) {
-                    if (updateState is UpdateState.Available && !(updateState as UpdateState.Available).info.mandatory) {
+                    if (updateState is UpdateState.Available && !(updateState as UpdateState.Available).info.mandatory && !isBannerDismissed) {
                         Box(Modifier.align(androidx.compose.ui.Alignment.BottomCenter).padding(bottom = 64.dp)) {
                             UpdateBanner(
                                 info = (updateState as UpdateState.Available).info,
                                 onUpdate = { updateViewModel.startDownload((updateState as UpdateState.Available).info) },
-                                onDismiss = { updateViewModel.skipVersion((updateState as UpdateState.Available).info.versionCode) }
+                                onDismiss = { updateViewModel.dismissBanner() }
                             )
                         }
                     }
@@ -967,5 +968,10 @@ class MainActivity : BaseAppCompatActivity() {
                     "Modrinth FAILED: ${e.message}")
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateViewModel.checkSilently()
     }
 }

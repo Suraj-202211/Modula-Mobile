@@ -40,24 +40,36 @@ class UpdateViewModel @Inject constructor(
     private val _state = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state = _state.asStateFlow()
 
+    private val _isBannerDismissed = MutableStateFlow(false)
+    val isBannerDismissed = _isBannerDismissed.asStateFlow()
+
     private var downloadJob: Job? = null
+    private var lastCheckTime = 0L
 
     val remoteConfig: StateFlow<RemoteConfig> = remoteConfigManager.config
 
-    fun checkSilently() {
+    fun checkSilently(force: Boolean = false) {
         viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            if (!force && now - lastCheckTime < 10 * 60 * 1000L) {
+                return@launch
+            }
+            lastCheckTime = now
+
             try {
                 remoteConfigManager.fetchConfig()
             } catch(e: Exception) {}
             
             try {
-                val skipped = dataStore.data
-                    .map { it[intPreferencesKey("skipped_version")] ?: 0 }
-                    .first()
+                // Clear any legacy permanent skip in DataStore
+                dataStore.edit { prefs ->
+                    prefs.remove(intPreferencesKey("skipped_version"))
+                }
 
                 val info = checker.checkForUpdate()
 
-                if (info != null && info.versionCode != skipped) {
+                if (info != null) {
+                    _isBannerDismissed.value = false
                     _state.value = UpdateState.Available(info)
                 }
             } catch (e: Exception) {
@@ -69,6 +81,8 @@ class UpdateViewModel @Inject constructor(
     fun checkManually() {
         viewModelScope.launch {
             _state.value = UpdateState.Checking
+            _isBannerDismissed.value = false
+            lastCheckTime = System.currentTimeMillis()
             val info = checker.checkForUpdate()
             _state.value = if (info != null) {
                 UpdateState.Available(info)
@@ -147,16 +161,16 @@ class UpdateViewModel @Inject constructor(
         _state.value = UpdateState.Available(info)
     }
 
+    fun dismissBanner() {
+        // Temporarily dismiss the banner for this UI session without suppressing the update permanently
+        _isBannerDismissed.value = true
+    }
+
     fun skipVersion(versionCode: Int) {
-        viewModelScope.launch {
-            dataStore.edit { prefs ->
-                prefs[intPreferencesKey("skipped_version")] = versionCode
-            }
-            _state.value = UpdateState.Idle
-        }
+        dismissBanner()
     }
 
     fun dismiss() {
-        _state.value = UpdateState.Idle
+        dismissBanner()
     }
 }

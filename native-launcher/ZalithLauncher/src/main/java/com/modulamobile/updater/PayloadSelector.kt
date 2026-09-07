@@ -37,7 +37,7 @@ object PayloadSelector {
         val patchToVersionCode = info.patchToVersionCode ?: info.versionCode
 
         Log.d(TAG, "[UPDATE] ==============================")
-        Log.d(TAG, "[UPDATE] UPDATE CHECK")
+        Log.d(TAG, "[UPDATE] OTA PAYLOAD SELECTION")
         Log.d(TAG, "[UPDATE] ==============================")
 
         Log.d(TAG, "[UPDATE] Installed versionName: $installedVersionName")
@@ -46,6 +46,7 @@ object PayloadSelector {
         Log.d(TAG, "[UPDATE] Remote versionName: ${info.versionName}")
         Log.d(TAG, "[UPDATE] Remote versionCode: ${info.versionCode}")
 
+        Log.d(TAG, "[UPDATE] Full APK URI: ${info.apkUrl}")
         Log.d(TAG, "[UPDATE] Full APK size: ${info.apkSizeBytes}")
         Log.d(TAG, "[UPDATE] Full APK SHA-256: ${info.apkSha256}")
 
@@ -54,43 +55,54 @@ object PayloadSelector {
         Log.d(TAG, "[UPDATE] Patch from versionCode: ${info.patchFromVersionCode ?: "null"}")
         Log.d(TAG, "[UPDATE] Patch to versionCode: $patchToVersionCode")
         Log.d(TAG, "[UPDATE] Patch from SHA-256: ${info.patchFromSha256 ?: "null"}")
+        Log.d(TAG, "[UPDATE] Patch to SHA-256: ${info.patchToSha256 ?: info.apkSha256}")
         Log.d(TAG, "[UPDATE] Patch SHA-256: ${info.patchSha256 ?: "null"}")
 
         Log.d(TAG, "[UPDATE] Installed APK SHA-256: ${installedApkSha256 ?: "null"}")
 
-        // Explicit compatibility checks
-        val checkUri = !info.patchUrl.isNullOrBlank()
-        Log.d(TAG, "[UPDATE] CHECK patch URI: ${if (checkUri) "PASS" else "FAIL"}")
+        // Individually evaluate checks per Part 2 specification
+        val check1UpdateExists = info.versionCode > installedVersionCode
+        Log.d(TAG, "[UPDATE] CHECK 1 - update exists: ${if (check1UpdateExists) "PASS" else "FAIL"}")
 
-        val checkSourceVersion = info.patchFromVersionCode != null && info.patchFromVersionCode == installedVersionCode
-        Log.d(TAG, "[UPDATE] CHECK source versionCode: ${if (checkSourceVersion) "PASS" else "FAIL"}")
+        val check2PatchUriExists = !info.patchUrl.isNullOrBlank()
+        Log.d(TAG, "[UPDATE] CHECK 2 - patch URI exists: ${if (check2PatchUriExists) "PASS" else "FAIL"}")
 
-        val checkSourceSha = !info.patchFromSha256.isNullOrBlank() &&
+        val check3SourceVersionMatches = info.patchFromVersionCode != null && info.patchFromVersionCode == installedVersionCode
+        Log.d(TAG, "[UPDATE] CHECK 3 - source version matches: ${if (check3SourceVersionMatches) "PASS" else "FAIL"}")
+
+        val check4TargetVersionMatches = patchToVersionCode == info.versionCode
+        Log.d(TAG, "[UPDATE] CHECK 4 - target version matches: ${if (check4TargetVersionMatches) "PASS" else "FAIL"}")
+
+        val check5ShaMatches = !info.patchFromSha256.isNullOrBlank() &&
                 installedApkSha256 != null &&
                 info.patchFromSha256.equals(installedApkSha256, ignoreCase = true)
-        Log.d(TAG, "[UPDATE] CHECK source SHA-256: ${if (checkSourceSha) "PASS" else "FAIL"}")
+        Log.d(TAG, "[UPDATE] CHECK 5 - installed APK SHA matches patch source: ${if (check5ShaMatches) "PASS" else "FAIL"}")
 
-        val checkTargetVersion = patchToVersionCode == info.versionCode
-        Log.d(TAG, "[UPDATE] CHECK target versionCode: ${if (checkTargetVersion) "PASS" else "FAIL"}")
+        val check6MetadataValid = info.patchSizeBytes != null && info.patchSizeBytes > 0 && !info.patchSha256.isNullOrBlank()
+        Log.d(TAG, "[UPDATE] CHECK 6 - patch metadata valid: ${if (check6MetadataValid) "PASS" else "FAIL"}")
 
-        val checkMetadata = info.patchSizeBytes != null && info.patchSizeBytes > 0 && !info.patchSha256.isNullOrBlank()
-        Log.d(TAG, "[UPDATE] CHECK patch metadata: ${if (checkMetadata) "PASS" else "FAIL"}")
+        val check7PatchSmaller = info.patchSizeBytes != null && info.apkSizeBytes > 0 && info.patchSizeBytes < info.apkSizeBytes
+        Log.d(TAG, "[UPDATE] CHECK 7 - patch smaller than full APK: ${if (check7PatchSmaller) "PASS" else "FAIL"}")
 
-        val checkSmaller = info.patchSizeBytes != null && info.apkSizeBytes > 0 && info.patchSizeBytes < info.apkSizeBytes
-        Log.d(TAG, "[UPDATE] CHECK patch smaller than APK: ${if (checkSmaller) "PASS" else "FAIL"}")
+        val isCompatible = check1UpdateExists && check2PatchUriExists && check3SourceVersionMatches &&
+                check4TargetVersionMatches && check5ShaMatches && check6MetadataValid && check7PatchSmaller
 
-        val isCompatible = checkUri && checkSourceVersion && checkSourceSha && checkTargetVersion && checkMetadata && checkSmaller
-        Log.d(TAG, "[UPDATE] PATCH COMPATIBLE: $isCompatible")
-
-        val rejectionReason = when {
-            !checkUri -> "patchUri is null or blank"
-            !checkMetadata -> "patch metadata incomplete (patchSize=${info.patchSizeBytes}, patchSha=${info.patchSha256})"
-            !checkSourceVersion -> "source versionCode mismatch: patch requires ${info.patchFromVersionCode}, installed is $installedVersionCode"
-            !checkTargetVersion -> "target versionCode mismatch: patch targets $patchToVersionCode, remote is ${info.versionCode}"
-            !checkSourceSha -> "source APK SHA-256 mismatch: patch requires ${info.patchFromSha256}, installed APK is $installedApkSha256"
-            !checkSmaller -> "patch size (${info.patchSizeBytes}) is not smaller than full APK (${info.apkSizeBytes})"
+        val failureReason = when {
+            !check1UpdateExists -> "Update does not exist or remote versionCode (${info.versionCode}) <= installed ($installedVersionCode)"
+            !check2PatchUriExists -> "patch URI does not exist or is null"
+            !check3SourceVersionMatches -> "source version mismatch: patch requires ${info.patchFromVersionCode}, installed is $installedVersionCode"
+            !check4TargetVersionMatches -> "target version mismatch: patch targets $patchToVersionCode, remote is ${info.versionCode}"
+            !check5ShaMatches -> "installed APK SHA-256 ($installedApkSha256) does not match patchFromSha256 (${info.patchFromSha256})"
+            !check6MetadataValid -> "patch metadata invalid: size=${info.patchSizeBytes}, sha=${info.patchSha256}"
+            !check7PatchSmaller -> "patch size (${info.patchSizeBytes}) is not smaller than full APK (${info.apkSizeBytes})"
             else -> "none"
         }
+
+        if (!isCompatible) {
+            Log.d(TAG, "[UPDATE] FAILURE REASON: $failureReason")
+        }
+
+        Log.d(TAG, "[UPDATE] PATCH COMPATIBLE: $isCompatible")
 
         if (isCompatible) {
             Log.d(TAG, "[UPDATE] SELECTED PAYLOAD: PATCH")
@@ -104,7 +116,6 @@ object PayloadSelector {
                 sourceSha256 = info.patchFromSha256!!
             )
         } else {
-            Log.d(TAG, "[UPDATE] PATCH REJECTION REASON: $rejectionReason")
             Log.d(TAG, "[UPDATE] SELECTED PAYLOAD: FULL_APK")
             Log.d(TAG, "[UPDATE] SELECTED PAYLOAD SIZE: ${info.apkSizeBytes}")
             return DownloadPayload.FullApk(
