@@ -115,28 +115,28 @@ class UpdateViewModel @Inject constructor(
                     speedMbps = 0f
                 )
 
-                val apkFile = downloader.download(info, initialPayload) { progress, dlMb, totalMb, speed ->
-                    if (progress >= 1f) {
-                        _state.value = UpdateState.Installing(info)
-                    } else {
-                        _state.value = UpdateState.Downloading(
-                            info = info,
-                            progress = progress,
-                            downloadedMb = dlMb,
-                            totalMb = totalMb,
-                            speedMbps = speed
-                        )
+                val apkFile = downloader.download(
+                    info = info,
+                    payload = initialPayload,
+                    onStatus = { status ->
+                        when (status) {
+                            "APPLYING" -> _state.value = UpdateState.Applying(info, "Applying update...")
+                            "VERIFYING" -> _state.value = UpdateState.Verifying(info, "Verifying update...")
+                            else -> {}
+                        }
+                    },
+                    onProgress = { progress, dlMb, totalMb, speed ->
+                        if (_state.value is UpdateState.Downloading) {
+                            _state.value = UpdateState.Downloading(
+                                info = info,
+                                progress = progress,
+                                downloadedMb = dlMb,
+                                totalMb = totalMb,
+                                speedMbps = speed
+                            )
+                        }
                     }
-                }
-
-                _state.value = UpdateState.Installing(info)
-
-                val valid = downloader.verifySha256(apkFile, info.apkSha256)
-                if (!valid) {
-                    apkFile.delete()
-                    _state.value = UpdateState.Failed(info, "Download corrupted. Please try again.")
-                    return@launch
-                }
+                )
 
                 _state.value = UpdateState.ReadyToInstall(info, apkFile)
 

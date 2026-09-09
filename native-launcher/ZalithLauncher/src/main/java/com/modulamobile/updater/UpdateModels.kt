@@ -84,6 +84,14 @@ sealed class UpdateState {
         val totalMb: Float,
         val speedMbps: Float
     ) : UpdateState()
+    data class Applying(
+        val info: UpdateInfo,
+        val statusMessage: String = "Applying update..."
+    ) : UpdateState()
+    data class Verifying(
+        val info: UpdateInfo,
+        val statusMessage: String = "Verifying update..."
+    ) : UpdateState()
     data class Installing(
         val info: UpdateInfo
     ) : UpdateState()

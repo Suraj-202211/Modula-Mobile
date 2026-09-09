@@ -185,6 +185,22 @@ fun UpdateProgressSheet(
                     ) { Text("CANCEL") }
                 }
 
+                is UpdateState.Applying -> {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(color = Color(0xFFFFD700), modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Text(state.statusMessage, color = Color(0xFFFFD700))
+                    }
+                }
+
+                is UpdateState.Verifying -> {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(color = Color(0xFFFFD700), modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Text(state.statusMessage, color = Color(0xFFFFD700))
+                    }
+                }
+
                 is UpdateState.Installing -> {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(color = Color(0xFFFFD700), modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
