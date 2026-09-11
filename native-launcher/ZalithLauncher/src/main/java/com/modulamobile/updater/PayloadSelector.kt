@@ -33,56 +33,56 @@ object PayloadSelector {
         }
         
         val sourceDir = context.applicationInfo.sourceDir
+        val installedApkFile = File(sourceDir)
         val installedApkSha256 = getOrCalculateInstalledSha256(sourceDir)
         val patchToVersionCode = info.patchToVersionCode ?: info.versionCode
 
-        Log.d(TAG, "[UPDATE] ==============================")
-        Log.d(TAG, "[UPDATE] OTA PAYLOAD SELECTION")
-        Log.d(TAG, "[UPDATE] ==============================")
+        // STEP 1 — LOG INSTALLED VERSION
+        Log.d("OTA-DIAG", "[OTA-DIAG] Installed versionCode = $installedVersionCode")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Installed versionName = $installedVersionName")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Installed APK sourceDir = $sourceDir")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Installed APK SHA-256 = $installedApkSha256")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Installed APK size = ${if (installedApkFile.exists()) installedApkFile.length() else 0}")
 
-        Log.d(TAG, "[UPDATE] Installed versionName: $installedVersionName")
-        Log.d(TAG, "[UPDATE] Installed versionCode: $installedVersionCode")
+        // STEP 2 — LOG COMPLETE REMOTE v1.0.22 METADATA
+        Log.d("OTA-DIAG", "[OTA-DIAG] Remote versionCode = ${info.versionCode}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Remote versionName = ${info.versionName}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Full APK URL = ${info.apkUrl}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Full APK size = ${info.apkSizeBytes}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Full APK SHA-256 = ${info.apkSha256}")
 
-        Log.d(TAG, "[UPDATE] Remote versionName: ${info.versionName}")
-        Log.d(TAG, "[UPDATE] Remote versionCode: ${info.versionCode}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Patch URL = ${info.patchUrl ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Patch size = ${info.patchSizeBytes ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] Patch SHA-256 = ${info.patchSha256 ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] patchFromVersionCode = ${info.patchFromVersionCode ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] patchToVersionCode = $patchToVersionCode")
+        Log.d("OTA-DIAG", "[OTA-DIAG] patchForVersionCode = ${info.patchFromVersionCode ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] patchFromSha256 = ${info.patchFromSha256 ?: "null"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] patchToSha256 = ${info.patchToSha256 ?: info.apkSha256}")
 
-        Log.d(TAG, "[UPDATE] Full APK URI: ${info.apkUrl}")
-        Log.d(TAG, "[UPDATE] Full APK size: ${info.apkSizeBytes}")
-        Log.d(TAG, "[UPDATE] Full APK SHA-256: ${info.apkSha256}")
-
-        Log.d(TAG, "[UPDATE] Patch URI: ${info.patchUrl ?: "null"}")
-        Log.d(TAG, "[UPDATE] Patch size: ${info.patchSizeBytes ?: "null"}")
-        Log.d(TAG, "[UPDATE] Patch from versionCode: ${info.patchFromVersionCode ?: "null"}")
-        Log.d(TAG, "[UPDATE] Patch to versionCode: $patchToVersionCode")
-        Log.d(TAG, "[UPDATE] Patch from SHA-256: ${info.patchFromSha256 ?: "null"}")
-        Log.d(TAG, "[UPDATE] Patch to SHA-256: ${info.patchToSha256 ?: info.apkSha256}")
-        Log.d(TAG, "[UPDATE] Patch SHA-256: ${info.patchSha256 ?: "null"}")
-
-        Log.d(TAG, "[UPDATE] Installed APK SHA-256: ${installedApkSha256 ?: "null"}")
-
-        // Individually evaluate checks per Part 2 specification
+        // STEP 3 — LOG EVERY PAYLOAD SELECTOR CHECK
         val check1UpdateExists = info.versionCode > installedVersionCode
-        Log.d(TAG, "[UPDATE] CHECK 1 - update exists: ${if (check1UpdateExists) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 1 update exists = ${if (check1UpdateExists) "PASS" else "FAIL"}")
 
         val check2PatchUriExists = !info.patchUrl.isNullOrBlank()
-        Log.d(TAG, "[UPDATE] CHECK 2 - patch URI exists: ${if (check2PatchUriExists) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 2 patch URI exists = ${if (check2PatchUriExists) "PASS" else "FAIL"}")
 
         val check3SourceVersionMatches = info.patchFromVersionCode != null && info.patchFromVersionCode == installedVersionCode
-        Log.d(TAG, "[UPDATE] CHECK 3 - source version matches: ${if (check3SourceVersionMatches) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 3 source version matches = ${if (check3SourceVersionMatches) "PASS" else "FAIL"}")
 
         val check4TargetVersionMatches = patchToVersionCode == info.versionCode
-        Log.d(TAG, "[UPDATE] CHECK 4 - target version matches: ${if (check4TargetVersionMatches) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 4 target version matches = ${if (check4TargetVersionMatches) "PASS" else "FAIL"}")
 
         val check5ShaMatches = !info.patchFromSha256.isNullOrBlank() &&
                 installedApkSha256 != null &&
                 info.patchFromSha256.equals(installedApkSha256, ignoreCase = true)
-        Log.d(TAG, "[UPDATE] CHECK 5 - installed APK SHA matches patch source: ${if (check5ShaMatches) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 5 installed APK SHA matches patch source SHA = ${if (check5ShaMatches) "PASS" else "FAIL"}")
 
         val check6MetadataValid = info.patchSizeBytes != null && info.patchSizeBytes > 0 && !info.patchSha256.isNullOrBlank()
-        Log.d(TAG, "[UPDATE] CHECK 6 - patch metadata valid: ${if (check6MetadataValid) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 6 patch metadata valid = ${if (check6MetadataValid) "PASS" else "FAIL"}")
 
         val check7PatchSmaller = info.patchSizeBytes != null && info.apkSizeBytes > 0 && info.patchSizeBytes < info.apkSizeBytes
-        Log.d(TAG, "[UPDATE] CHECK 7 - patch smaller than full APK: ${if (check7PatchSmaller) "PASS" else "FAIL"}")
+        Log.d("OTA-DIAG", "[OTA-DIAG] CHECK 7 patch smaller than full APK = ${if (check7PatchSmaller) "PASS" else "FAIL"}")
 
         val isCompatible = check1UpdateExists && check2PatchUriExists && check3SourceVersionMatches &&
                 check4TargetVersionMatches && check5ShaMatches && check6MetadataValid && check7PatchSmaller
@@ -98,11 +98,15 @@ object PayloadSelector {
             else -> "none"
         }
 
-        if (!isCompatible) {
-            Log.d(TAG, "[UPDATE] FAILURE REASON: $failureReason")
+        // STEP 4 — VERSION-CHAIN DIAGNOSIS
+        if (!check3SourceVersionMatches && info.patchFromVersionCode != null) {
+            Log.d("OTA-DIAG", "[OTA-DIAG] PATCH INCOMPATIBLE: installed v$installedVersionName (code $installedVersionCode), patch requires versionCode ${info.patchFromVersionCode}")
         }
 
-        Log.d(TAG, "[UPDATE] PATCH COMPATIBLE: $isCompatible")
+        Log.d("OTA-DIAG", "[OTA-DIAG] FINAL PAYLOAD = ${if (isCompatible) "PATCH" else "FULL"}")
+        if (!isCompatible) {
+            Log.d("OTA-DIAG", "[OTA-DIAG] REJECTION REASON: $failureReason")
+        }
 
         if (isCompatible) {
             Log.d(TAG, "[UPDATE] SELECTED PAYLOAD: PATCH")

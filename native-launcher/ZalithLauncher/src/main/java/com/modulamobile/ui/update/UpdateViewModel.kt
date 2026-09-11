@@ -120,7 +120,7 @@ class UpdateViewModel @Inject constructor(
                     payload = initialPayload,
                     onStatus = { status ->
                         when (status) {
-                            "APPLYING" -> _state.value = UpdateState.Applying(info, "Applying update...")
+                            "APPLYING" -> _state.value = UpdateState.Applying(info, "Processing update...")
                             "VERIFYING" -> _state.value = UpdateState.Verifying(info, "Verifying update...")
                             else -> {}
                         }
@@ -143,7 +143,7 @@ class UpdateViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 _state.value = UpdateState.Available(info)
             } catch (e: Exception) {
-                _state.value = UpdateState.Failed(info, e.message ?: "Download failed")
+                _state.value = UpdateState.Failed(info, e.message ?: "Delta update failed. Please try again or use the full update.")
             }
         }
     }
