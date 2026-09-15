@@ -51,6 +51,21 @@ class UpdateChecker @Inject constructor(
                 val remoteData = json.decodeFromString<com.movtery.zalithlauncher.upgrade.RemoteData>(jsonString)
                 val file = remoteData.files.firstOrNull() ?: return@withContext null
                 
+                // Fetch patches.json as authoritative historical patch index
+                val patchesList = try {
+                    val patchResp = httpClient.get("https://github.com/Suraj-202211/Modula-Mobile/releases/latest/download/patches.json")
+                    if (patchResp.status.value == 200) {
+                        val patchJsonStr = patchResp.bodyAsText()
+                        json.decodeFromString<PatchIndex>(patchJsonStr).patches
+                    } else {
+                        Log.d(TAG, "[UPDATE] patches.json returned HTTP ${patchResp.status.value}")
+                        emptyList()
+                    }
+                } catch (e: Exception) {
+                    Log.d(TAG, "[UPDATE] patches.json not available: ${e.message}")
+                    emptyList()
+                }
+
                 // Map to UpdateInfo
                 val updateInfo = UpdateInfo(
                     versionCode = remoteData.code,
@@ -66,23 +81,24 @@ class UpdateChecker @Inject constructor(
                     patchFromVersionCode = file.patchForVersionCode ?: file.patchForVersionCodeLegacy,
                     patchToVersionCode = file.patchToVersionCode ?: remoteData.code,
                     patchFromSha256 = file.patchFromSha256,
-                    patchToSha256 = file.patchToSha256 ?: file.apkSha256
+                    patchToSha256 = file.patchToSha256 ?: file.apkSha256,
+                    patches = patchesList
                 )
 
-                val currentVersion = BuildConfig.VERSION_CODE
-                val currentVersionName = BuildConfig.VERSION_NAME
+                val currentVersion = getInstalledVersionCode(context)
+                val currentVersionName = getInstalledVersionName(context)
                 val packageName = context.packageName
 
                 Log.d(TAG, "[UPDATE] Installed package: $packageName")
-                Log.d(TAG, "[UPDATE] Installed versionCode: $currentVersion")
-                Log.d(TAG, "[UPDATE] Installed versionName: $currentVersionName")
-                Log.d(TAG, "[UPDATE] Remote versionCode: ${updateInfo.versionCode}")
-                Log.d(TAG, "[UPDATE] Remote versionName: ${updateInfo.versionName}")
+                Log.d("OTA", "[OTA] Installed versionCode: $currentVersion")
+                Log.d("OTA", "[OTA] Installed versionName: $currentVersionName")
+                Log.d("OTA", "[OTA] Remote versionCode: ${updateInfo.versionCode}")
+                Log.d("OTA", "[OTA] Remote versionName: ${updateInfo.versionName}")
                 Log.d(TAG, "[UPDATE] Remote release URL: ${updateInfo.apkUrl}")
                 
                 Log.d(TAG, "[UPDATE] Comparing remoteVersionCode=${updateInfo.versionCode} with installedVersionCode=$currentVersion")
                 val isUpdateAvailable = updateInfo.versionCode > currentVersion
-                Log.d(TAG, "[UPDATE] ${updateInfo.versionCode} > $currentVersion = $isUpdateAvailable")
+                Log.d("OTA", "[OTA] Update available: $isUpdateAvailable")
 
                 // Return update if newer version is available
                 if (isUpdateAvailable) {
@@ -104,12 +120,39 @@ class UpdateChecker @Inject constructor(
     fun hasEnoughStorage(requiredBytes: Long): Boolean {
         val stat = StatFs(context.filesDir.path)
         val available = stat.availableBlocksLong * stat.blockSizeLong
-        return available > requiredBytes * 2
+        return available > requiredBytes
     }
 
     fun canInstallPackages(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.packageManager.canRequestPackageInstalls()
         } else true
+    }
+
+    companion object {
+        private const val TAG = "UpdateChecker"
+
+        fun getInstalledVersionCode(context: Context): Int {
+            return try {
+                val pkgInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    pkgInfo.longVersionCode.toInt()
+                } else {
+                    @Suppress("DEPRECATION")
+                    pkgInfo.versionCode
+                }
+            } catch (e: Exception) {
+                BuildConfig.VERSION_CODE
+            }
+        }
+
+        fun getInstalledVersionName(context: Context): String {
+            return try {
+                val pkgInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                pkgInfo.versionName ?: BuildConfig.VERSION_NAME
+            } catch (e: Exception) {
+                BuildConfig.VERSION_NAME
+            }
+        }
     }
 }

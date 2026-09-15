@@ -5,6 +5,30 @@ import kotlinx.serialization.Serializable
 import java.io.File
 
 @Serializable
+data class PatchEntry(
+    @SerialName("fromVersionCode")
+    val fromVersionCode: Int,
+    @SerialName("toVersionCode")
+    val toVersionCode: Int,
+    @SerialName("patchUrl")
+    val patchUrl: String,
+    @SerialName("patchSizeBytes")
+    val patchSizeBytes: Long,
+    @SerialName("patchSha256")
+    val patchSha256: String,
+    @SerialName("sourceSha256")
+    val sourceSha256: String,
+    @SerialName("targetSha256")
+    val targetSha256: String
+)
+
+@Serializable
+data class PatchIndex(
+    @SerialName("patches")
+    val patches: List<PatchEntry> = emptyList()
+)
+
+@Serializable
 data class UpdateInfo(
     @SerialName("versionCode")
     val versionCode: Int,
@@ -35,7 +59,9 @@ data class UpdateInfo(
     @SerialName("patchFromSha256")
     val patchFromSha256: String? = null,
     @SerialName("patchToSha256")
-    val patchToSha256: String? = null
+    val patchToSha256: String? = null,
+    @SerialName("patches")
+    val patches: List<PatchEntry> = emptyList()
 )
 
 sealed class DownloadPayload {
@@ -49,7 +75,16 @@ sealed class DownloadPayload {
         override val sha256: String,
         val sourceVersionCode: Int,
         val targetVersionCode: Int = 0,
-        val sourceSha256: String
+        val sourceSha256: String,
+        val targetSha256: String = ""
+    ) : DownloadPayload()
+
+    data class PatchChain(
+        val patches: List<PatchEntry>,
+        override val sizeBytes: Long = patches.sumOf { it.patchSizeBytes },
+        override val url: String = patches.firstOrNull()?.patchUrl ?: "",
+        override val sha256: String = patches.lastOrNull()?.targetSha256 ?: "",
+        val targetVersionCode: Int = patches.lastOrNull()?.toVersionCode ?: 0
     ) : DownloadPayload()
 
     data class FullApk(
@@ -70,6 +105,12 @@ data class GitHubFileContent(
     val downloadUrl: String? = null
 )
 
+data class PostInstallNotification(
+    val isSuccess: Boolean,
+    val title: String,
+    val message: String
+)
+
 sealed class UpdateState {
     object Idle : UpdateState()
     object Checking : UpdateState()
@@ -82,15 +123,21 @@ sealed class UpdateState {
         val progress: Float,
         val downloadedMb: Float,
         val totalMb: Float,
-        val speedMbps: Float
+        val speedMbps: Float,
+        val currentStep: Int = 1,
+        val totalSteps: Int = 1
     ) : UpdateState()
     data class Applying(
         val info: UpdateInfo,
-        val statusMessage: String = "Applying update..."
+        val statusMessage: String = "Applying update...",
+        val currentStep: Int = 1,
+        val totalSteps: Int = 1
     ) : UpdateState()
     data class Verifying(
         val info: UpdateInfo,
-        val statusMessage: String = "Verifying update..."
+        val statusMessage: String = "Verifying update...",
+        val currentStep: Int = 1,
+        val totalSteps: Int = 1
     ) : UpdateState()
     data class Installing(
         val info: UpdateInfo
@@ -100,7 +147,11 @@ sealed class UpdateState {
         val apkFile: File
     ) : UpdateState()
     data class Failed(
-        val info: UpdateInfo,
+        val info: UpdateInfo?,
         val message: String
     ) : UpdateState()
+    data class Success(
+        val installedVersionCode: Int
+    ) : UpdateState()
 }
+

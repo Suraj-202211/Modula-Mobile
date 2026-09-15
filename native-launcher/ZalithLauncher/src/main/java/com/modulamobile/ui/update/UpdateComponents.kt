@@ -239,7 +239,8 @@ fun UpdateProgressSheet(
 fun MandatoryUpdateScreen(
     info: UpdateInfo,
     state: UpdateState,
-    onUpdate: () -> Unit
+    onUpdate: () -> Unit,
+    onInstall: (File) -> Unit = {}
 ) {
     Box(Modifier.fillMaxSize().background(Color(0xFF080810)), contentAlignment = Alignment.Center) {
         Column(modifier = Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -269,7 +270,7 @@ fun MandatoryUpdateScreen(
             }
 
             Spacer(Modifier.height(20.dp))
-            UpdateProgressSheet(state = state, info = info, onInstall = { }, onCancel = { }, onRetry = onUpdate)
+            UpdateProgressSheet(state = state, info = info, onInstall = onInstall, onCancel = { }, onRetry = onUpdate)
 
             if (state is UpdateState.Available) {
                 androidx.compose.material3.Button(

@@ -573,7 +573,7 @@ class MainActivity : BaseAppCompatActivity() {
                                     UpdateProgressSheet(
                                         state = updateState,
                                         info = info,
-                                        onInstall = { updateViewModel.install(it, this@MainActivity) },
+                                        onInstall = { updateViewModel.install(it, this@MainActivity, info.versionCode) },
                                         onCancel = { updateViewModel.cancelDownload(info) },
                                         onRetry = { updateViewModel.startDownload(info) }
                                     )
@@ -594,7 +594,34 @@ class MainActivity : BaseAppCompatActivity() {
                         MandatoryUpdateScreen(
                             info = mandatoryInfo,
                             state = updateState,
-                            onUpdate = { updateViewModel.startDownload(mandatoryInfo) }
+                            onUpdate = { updateViewModel.startDownload(mandatoryInfo) },
+                            onInstall = { updateViewModel.install(it, this@MainActivity, mandatoryInfo.versionCode) }
+                        )
+                    }
+                    
+                    if (updateState is UpdateState.Success) {
+                        val state = updateState as UpdateState.Success
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { updateViewModel.resetState() },
+                            title = { androidx.compose.material3.Text("Update Successful") },
+                            text = { androidx.compose.material3.Text("Successfully updated to version code ${state.installedVersionCode}.") },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = { updateViewModel.resetState() }) {
+                                    androidx.compose.material3.Text("OK")
+                                }
+                            }
+                        )
+                    } else if (updateState is UpdateState.Failed && (updateState as UpdateState.Failed).info == null) {
+                        val state = updateState as UpdateState.Failed
+                        androidx.compose.material3.AlertDialog(
+                            onDismissRequest = { updateViewModel.resetState() },
+                            title = { androidx.compose.material3.Text("Update Failed") },
+                            text = { androidx.compose.material3.Text(state.message) },
+                            confirmButton = {
+                                androidx.compose.material3.TextButton(onClick = { updateViewModel.resetState() }) {
+                                    androidx.compose.material3.Text("OK")
+                                }
+                            }
                         )
                     }
                 }

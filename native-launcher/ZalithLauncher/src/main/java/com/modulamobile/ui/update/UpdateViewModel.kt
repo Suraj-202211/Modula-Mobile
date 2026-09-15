@@ -48,7 +48,41 @@ class UpdateViewModel @Inject constructor(
 
     val remoteConfig: StateFlow<RemoteConfig> = remoteConfigManager.config
 
+    val targetVersionKey = intPreferencesKey("target_update_version")
+
+    init {
+        viewModelScope.launch {
+            val targetVersion = dataStore.data.first()[targetVersionKey] ?: 0
+            if (targetVersion > 0) {
+                val pm = context.packageManager
+                val installedVersionCode = try {
+                    val pkgInfo = pm.getPackageInfo(context.packageName, 0)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                        pkgInfo.longVersionCode.toInt()
+                    } else {
+                        @Suppress("DEPRECATION")
+                        pkgInfo.versionCode
+                    }
+                } catch (e: Exception) {
+                    -1
+                }
+
+                if (installedVersionCode >= targetVersion) {
+                    // Update success!
+                    _state.value = UpdateState.Success(installedVersionCode)
+                } else if (installedVersionCode > 0) {
+                    // Update failed or was cancelled
+                    _state.value = UpdateState.Failed(null, "App update cancelled or failed to install.")
+                }
+                
+                // Clear the target
+                dataStore.edit { it.remove(targetVersionKey) }
+            }
+        }
+    }
+
     fun checkSilently(force: Boolean = false) {
+
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             if (!force && now - lastCheckTime < 10 * 60 * 1000L) {
@@ -148,12 +182,15 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
-    fun install(apkFile: File, activity: Activity) {
+    fun install(apkFile: File, activity: Activity, targetVersionCode: Int) {
         if (!checker.canInstallPackages()) {
             installer.requestInstallPermission(activity)
             return
         }
-        installer.install(apkFile)
+        viewModelScope.launch {
+            dataStore.edit { it[targetVersionKey] = targetVersionCode }
+            installer.install(apkFile)
+        }
     }
 
     fun cancelDownload(info: UpdateInfo) {
@@ -172,5 +209,9 @@ class UpdateViewModel @Inject constructor(
 
     fun dismiss() {
         dismissBanner()
+    }
+
+    fun resetState() {
+        _state.value = UpdateState.Idle
     }
 }

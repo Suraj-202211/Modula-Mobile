@@ -117,18 +117,59 @@ object PayloadSelector {
                 sha256 = info.patchSha256!!,
                 sourceVersionCode = info.patchFromVersionCode!!,
                 targetVersionCode = patchToVersionCode,
-                sourceSha256 = info.patchFromSha256!!
-            )
-        } else {
-            Log.d(TAG, "[UPDATE] SELECTED PAYLOAD: FULL_APK")
-            Log.d(TAG, "[UPDATE] SELECTED PAYLOAD SIZE: ${info.apkSizeBytes}")
-            return DownloadPayload.FullApk(
-                url = info.apkUrl,
-                sizeBytes = info.apkSizeBytes,
-                sha256 = info.apkSha256,
-                targetVersionCode = info.versionCode
+                sourceSha256 = info.patchFromSha256!!,
+                targetSha256 = info.patchToSha256 ?: info.apkSha256
             )
         }
+
+        // Direct patch is not compatible. Discover possible patch chain via PatchGraph.
+        val allPatches = mutableListOf<PatchEntry>()
+        allPatches.addAll(info.patches)
+        if (!info.patchUrl.isNullOrBlank() && info.patchSizeBytes != null && !info.patchSha256.isNullOrBlank() &&
+            info.patchFromVersionCode != null && !info.patchFromSha256.isNullOrBlank()) {
+            val directTargetVersion = info.patchToVersionCode ?: info.versionCode
+            val directTargetSha = info.patchToSha256 ?: info.apkSha256
+            val alreadyPresent = allPatches.any {
+                it.fromVersionCode == info.patchFromVersionCode && it.toVersionCode == directTargetVersion
+            }
+            if (!alreadyPresent) {
+                allPatches.add(
+                    PatchEntry(
+                        fromVersionCode = info.patchFromVersionCode,
+                        toVersionCode = directTargetVersion,
+                        patchUrl = info.patchUrl,
+                        patchSizeBytes = info.patchSizeBytes,
+                        patchSha256 = info.patchSha256,
+                        sourceSha256 = info.patchFromSha256,
+                        targetSha256 = directTargetSha
+                    )
+                )
+            }
+        }
+
+        if (allPatches.isNotEmpty()) {
+            Log.d("OTA-CHAIN", "[OTA-CHAIN] Direct patch not applicable ($failureReason). Checking patch graph with ${allPatches.size} edges.")
+            val chainPayload = PatchGraph.selectPayload(
+                installedVersionCode = installedVersionCode,
+                targetVersionCode = info.versionCode,
+                installedApkSha = installedApkSha256,
+                targetApkSha = info.apkSha256,
+                patches = allPatches,
+                fullApkUrl = info.apkUrl,
+                fullApkSizeBytes = info.apkSizeBytes,
+                fullApkSha256 = info.apkSha256
+            )
+            return chainPayload
+        }
+
+        Log.d(TAG, "[UPDATE] SELECTED PAYLOAD: FULL_APK")
+        Log.d(TAG, "[UPDATE] SELECTED PAYLOAD SIZE: ${info.apkSizeBytes}")
+        return DownloadPayload.FullApk(
+            url = info.apkUrl,
+            sizeBytes = info.apkSizeBytes,
+            sha256 = info.apkSha256,
+            targetVersionCode = info.versionCode
+        )
     }
 
     private fun getOrCalculateInstalledSha256(sourceDir: String): String? {
