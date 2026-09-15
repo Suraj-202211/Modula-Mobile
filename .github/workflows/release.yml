@@ -77,7 +77,7 @@ jobs:
           done
           echo "prev=$PREV" >> $GITHUB_OUTPUT
 
-      - name: Download previous APK
+      - name: Download previous release files
         if: steps.prev.outputs.prev != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +87,10 @@ jobs:
           mkdir -p previous
           gh release download $PREV_TAG \
             --pattern "launcher-v${VERSION}.apk" \
-            --dir previous || echo "Previous release not found or pattern mismatch"
+            --dir previous || echo "Previous APK not found"
+          gh release download $PREV_TAG \
+            --pattern "patches.json" \
+            --dir . || echo "patches.json not found in previous release"
 
       # ------------------------------------------------------------
       # Generate bsdiff patch
@@ -98,7 +101,7 @@ jobs:
         with:
           swap-size-gb: 4
 
-      - name: Generate patch
+      - name: Generate patch and verify
         if: steps.prev.outputs.prev != ''
         run: |
           NEW=${GITHUB_REF_NAME#v}
@@ -109,8 +112,51 @@ jobs:
             echo "Generating patch from previous/launcher-v${OLD}.apk to launcher-v${NEW}.apk"
             bsdiff previous/launcher-v${OLD}.apk launcher-v${NEW}.apk launcher-v${OLD}_to_v${NEW}.patch
             ls -lh launcher-v${OLD}_to_v${NEW}.patch
+            
+            echo "Verifying generated patch..."
+            bspatch previous/launcher-v${OLD}.apk reconstructed.apk launcher-v${OLD}_to_v${NEW}.patch
+            
+            ORIG_SHA=$(sha256sum launcher-v${NEW}.apk | awk '{print $1}')
+            RECON_SHA=$(sha256sum reconstructed.apk | awk '{print $1}')
+            
+            if [ "$ORIG_SHA" != "$RECON_SHA" ]; then
+              echo "ERROR: Patch verification failed!"
+              echo "Original SHA: $ORIG_SHA"
+              echo "Reconstructed SHA: $RECON_SHA"
+              exit 1
+            fi
+            echo "Patch verified successfully!"
+            rm reconstructed.apk
           else
             echo "Previous APK not downloaded, skipping patch generation."
+          fi
+
+      - name: Generate patches.json
+        if: steps.prev.outputs.prev != ''
+        run: |
+          NEW=${GITHUB_REF_NAME#v}
+          PREV_TAG="${{ steps.prev.outputs.prev }}"
+          OLD=${PREV_TAG#v}
+          
+          PATCH_FILE="launcher-v${OLD}_to_v${NEW}.patch"
+          OLD_APK="previous/launcher-v${OLD}.apk"
+          NEW_APK="launcher-v${NEW}.apk"
+          
+          if [ -f "$PATCH_FILE" ] && [ -f "$OLD_APK" ]; then
+            APK_ANALYZER="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
+            OLD_VERSION_CODE=$($APK_ANALYZER manifest version-code "$OLD_APK" 2>/dev/null || true)
+            NEW_VERSION_CODE=$($APK_ANALYZER manifest version-code "$NEW_APK" 2>/dev/null || true)
+            
+            PATCH_URL="https://github.com/${{ github.repository }}/releases/download/v${NEW}/${PATCH_FILE}"
+            
+            python scripts/update_patches_index.py \
+              --index patches.json \
+              --from-code "$OLD_VERSION_CODE" \
+              --to-code "$NEW_VERSION_CODE" \
+              --url "$PATCH_URL" \
+              --patch-file "$PATCH_FILE" \
+              --source-apk "$OLD_APK" \
+              --target-apk "$NEW_APK"
           fi
 
       # ------------------------------------------------------------
@@ -149,11 +195,20 @@ jobs:
       # Create GitHub Release
       # ------------------------------------------------------------
 
-      - name: Verify APK exists
+      - name: Verify APK identity
         run: |
-          test -f launcher-v${GITHUB_REF_NAME#v}.apk
+          VERSION=${GITHUB_REF_NAME#v}
+          test -f launcher-v${VERSION}.apk
           test -f ModulaMobile.apk
-          echo "APK verified"
+          
+          SHA1=$(sha256sum launcher-v${VERSION}.apk | awk '{print $1}')
+          SHA2=$(sha256sum ModulaMobile.apk | awk '{print $1}')
+          
+          if [ "$SHA1" != "$SHA2" ]; then
+            echo "ERROR: Universal APK SHA mismatch!"
+            exit 1
+          fi
+          echo "APK SHA verified successfully"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -165,4 +220,5 @@ jobs:
             ModulaMobile.apk
             launcher-v*_to_v*.patch
             release.json
+            patches.json
 
