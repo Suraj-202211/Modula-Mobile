@@ -33,10 +33,10 @@ fun Modifier.glass(
     val transparency = com.modulamobile.ui.state.LocalUiSettings.current.uiTransparency
 
     val (bgColor, borderColor) = when (variant) {
-        GlassVariant.GOLD  -> themeAccent to Color.Transparent
-        GlassVariant.DARK  -> Color(0xFF18181D).copy(alpha = (1f - transparency).coerceAtLeast(0.1f)) to Color(0xFF2A2A35)
-        GlassVariant.DEEP  -> Color(0xFF101015).copy(alpha = (1f - transparency).coerceAtLeast(0.1f)) to Color.Transparent
-        GlassVariant.HERO  -> themeAccent.copy(alpha = 0.2f * (1f - transparency).coerceAtLeast(0.1f)) to themeAccent.copy(alpha = 0.6f)
+        GlassVariant.GOLD  -> themeAccent.copy(alpha = 0.10f * (1f - transparency).coerceAtLeast(0.1f)) to themeAccent.copy(alpha = 0.40f)
+        GlassVariant.DARK  -> ColorBg1.copy(alpha = 0.60f * (1f - transparency).coerceAtLeast(0.1f)) to Color.White.copy(alpha = 0.15f)
+        GlassVariant.DEEP  -> ColorBg0.copy(alpha = 0.80f * (1f - transparency).coerceAtLeast(0.1f)) to Color.Transparent
+        GlassVariant.HERO  -> themeAccent.copy(alpha = 0.16f * (1f - transparency).coerceAtLeast(0.1f)) to themeAccent.copy(alpha = 0.65f)
     }
 
     this
@@ -157,7 +157,7 @@ fun GlassDivider(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(Color(0xFF2A2A35))
+            .background(Color.White.copy(alpha = 0.1f))
     )
 }
 
@@ -187,7 +187,7 @@ fun GlassTopBar(modifier: Modifier = Modifier, title: @Composable () -> Unit) {
 @Composable
 fun GlassBottomNav(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = modifier.fillMaxWidth().height(80.dp).background(ColorBg0).border(1.dp, Color(0xFF15151A)),
+        modifier = modifier.fillMaxWidth().height(80.dp).background(ColorBg0).border(1.dp, ColorBg3),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
         content = content
@@ -212,7 +212,7 @@ fun GlassBadge(text: String, modifier: Modifier = Modifier) {
 @Composable
 fun GlassProgressBar(progress: Float, modifier: Modifier = Modifier) {
     val themeAccent = com.modulamobile.ui.theme.LocalModulaColors.current.primary
-    Box(modifier = modifier.fillMaxWidth().height(4.dp).background(Color(0xFF18181D))) {
+    Box(modifier = modifier.fillMaxWidth().height(4.dp).background(ColorBg2)) {
         Box(modifier = Modifier.fillMaxWidth(progress).fillMaxHeight().background(themeAccent))
     }
 }
@@ -225,7 +225,7 @@ fun GlassToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit, modifier: 
         onCheckedChange = onCheckedChange,
         colors = SwitchDefaults.colors(
             checkedThumbColor = themeAccent,
-            checkedTrackColor = Color(0xFF2A2A35),
+            checkedTrackColor = ColorBg4,
             uncheckedThumbColor = TextMuted,
             uncheckedTrackColor = ColorBg3
         ),

@@ -16,12 +16,12 @@ import com.modulamobile.ui.settings.SettingsViewModel
 @Composable
 fun getDynamicColorScheme(themeName: String) = darkColorScheme(
     primary = when (themeName) {
-        "DEFAULT" -> GoldBright
-        "ONYX" -> OnyxAccent
-        "VOLCANIC" -> VolcanicAccent
-        "NEON" -> NeonAccent
-        "ARCTIC" -> ArcticAccent
-        else -> GoldBright
+        "DEFAULT" -> FluxGold
+        "ONYX"    -> OnyxAccent
+        "VOLCANIC"-> VolcanicAccent
+        "NEON"    -> NeonAccent
+        "ARCTIC"  -> ArcticAccent
+        else -> FluxGold
     },
     background = when (themeName) {
         "DEFAULT" -> ColorBg0

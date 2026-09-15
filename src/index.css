@@ -25,9 +25,12 @@
   /* Glow layers */
   --color-glow-05: rgba(255, 215, 0, 0.05);
   --color-glow-10: rgba(255, 215, 0, 0.1);
+  --color-glow-16: rgba(255, 215, 0, 0.16);
   --color-glow-20: rgba(255, 215, 0, 0.2);
   --color-glow-35: rgba(255, 215, 0, 0.35);
+  --color-glow-40: rgba(255, 215, 0, 0.40);
   --color-glow-60: rgba(255, 215, 0, 0.6);
+  --color-glow-65: rgba(255, 215, 0, 0.65);
   --color-glow-80: rgba(255, 215, 0, 0.8);
 
   /* Text hierarchy */
@@ -96,13 +99,13 @@
 
 .glass-gold {
   background-color: var(--color-glow-10);
-  border: 1px solid var(--color-glow-35);
+  border: 1px solid var(--color-glow-40);
   backdrop-filter: blur(12px);
 }
 
 .glass-hero {
-  background-color: var(--color-glow-20);
-  border: 1px solid var(--color-glow-60);
+  background-color: var(--color-glow-16);
+  border: 1px solid var(--color-glow-65);
   backdrop-filter: blur(40px);
 }
 

@@ -22,7 +22,7 @@ object ThemeManager {
             "VOLCANIC" -> ModulaColors(VolcanicAccent, Color(0xFFF87171), Color(0xFFFCA5A5), VolcanicCanvas, ColorBg1)
             "NEON" -> ModulaColors(NeonAccent, Color(0xFFE879F9), Color(0xFFF0ABFC), NeonCanvas, ColorBg1)
             "ARCTIC" -> ModulaColors(ArcticAccent, Color(0xFF7DD3FC), Color(0xFFBAE6FD), ArcticCanvas, ColorBg1)
-            else -> ModulaColors(GoldBright, GoldMid, GoldDeep, ColorBg0, ColorBg1)
+            else -> ModulaColors(FluxGold, FluxAmber, FluxCopper, ColorBg0, ColorBg1)
         }
     }
 }

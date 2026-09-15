@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.modulamobile.ui.theme.GoldBright
-import com.modulamobile.ui.theme.GoldMid
+import com.modulamobile.ui.theme.FluxGold
+import com.modulamobile.ui.theme.FluxAmber
 import kotlinx.coroutines.delay
 
 fun pushForwardEnter(): EnterTransition = slideInHorizontally(
@@ -74,7 +74,7 @@ fun GameLaunchTransition(active: Boolean, onComplete: () -> Unit) {
                 Canvas(Modifier.fillMaxSize()) {
                     drawRect(
                         Brush.radialGradient(
-                            listOf(GoldBright.copy(alpha=0.9f), GoldMid.copy(alpha=0.4f), Color.Transparent),
+                            listOf(FluxGold.copy(alpha=0.9f), FluxAmber.copy(alpha=0.4f), Color.Transparent),
                             center, size.maxDimension * 1.2f
                         )
                     )
