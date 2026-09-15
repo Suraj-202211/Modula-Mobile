@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.*
 import com.movtery.zalithlauncher.ui.theme.*
+import com.modulamobile.ui.theme.*
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,7 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(1.dp, FluxGold.copy(0.5f), RoundedCornerShape(12.dp))
-                    .background(Color(0xFF0F0F14), RoundedCornerShape(12.dp))
+                    .background(ColorBg3, RoundedCornerShape(12.dp))
                     .padding(16.dp)
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
@@ -147,7 +148,7 @@ fun HomeScreen(navController: NavHostController) {
                 Box(
                     modifier = modifier
                         .border(1.dp, TextSecondary.copy(0.1f), RoundedCornerShape(8.dp))
-                        .background(Color(0xFF0F0F14), RoundedCornerShape(8.dp))
+                        .background(ColorBg3, RoundedCornerShape(8.dp))
                         .padding(vertical = 12.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -167,7 +168,7 @@ fun HomeScreen(navController: NavHostController) {
             }
             Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatCard("🔊", Color(0xFF3399FF), "ON", "AUDIO", Modifier.weight(1f))
+                StatCard("🔊", ColorInfo, "ON", "AUDIO", Modifier.weight(1f))
                 Spacer(Modifier.weight(2f)) // Filler for empty grid spaces
             }
         }
