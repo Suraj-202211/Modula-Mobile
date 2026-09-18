@@ -22,10 +22,6 @@ class UpdateChecker @Inject constructor(
     private val httpClient: HttpClient,
     @ApplicationContext private val context: Context
 ) {
-    companion object {
-        private const val TAG = "UpdateChecker"
-    }
-
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true

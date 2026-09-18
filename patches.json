@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "patches": [
+    {
+      "fromVersionCode": 10,
+      "toVersionCode": 11,
+      "patchUrl": "https://github.com/repo/releases/download/v1.0.1/patch.bin",
+      "patchSizeBytes": 16,
+      "patchSha256": "6997fb797690c192cd6a26fa67f3981453377a49b1972246b720ad8e9642635b",
+      "sourceSha256": "45fe3f2592b5ec5c82e6a3f3a3b91ce36a0c1f3453faa228d5c4cb620e1ca04e",
+      "targetSha256": "13ead500929266df19ea8a3360873da9281a15217a4dc3ca7efcb2b6bf34937f"
+    }
+  ]
+}

@@ -31,7 +31,8 @@ import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.*
 import com.movtery.zalithlauncher.ui.theme.*
-import com.modulamobile.ui.theme.*
+import com.modulamobile.ui.theme.ColorBg3
+import com.modulamobile.ui.theme.ColorInfo
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
