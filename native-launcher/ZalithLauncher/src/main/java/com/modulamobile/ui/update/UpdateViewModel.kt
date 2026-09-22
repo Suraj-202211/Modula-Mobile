@@ -126,6 +126,42 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
+    private suspend fun downloadWithPayload(
+        info: UpdateInfo,
+        payload: com.modulamobile.updater.DownloadPayload
+    ): File {
+        _state.value = UpdateState.Downloading(
+            info = info,
+            progress = 0f,
+            downloadedMb = 0f,
+            totalMb = payload.sizeBytes / 1024f / 1024f,
+            speedMbps = 0f
+        )
+
+        return downloader.download(
+            info = info,
+            payload = payload,
+            onStatus = { status ->
+                when (status) {
+                    "APPLYING" -> _state.value = UpdateState.Applying(info, "Processing update...")
+                    "VERIFYING" -> _state.value = UpdateState.Verifying(info, "Verifying update...")
+                    else -> {}
+                }
+            },
+            onProgress = { progress, dlMb, totalMb, speed ->
+                if (_state.value is UpdateState.Downloading) {
+                    _state.value = UpdateState.Downloading(
+                        info = info,
+                        progress = progress,
+                        downloadedMb = dlMb,
+                        totalMb = totalMb,
+                        speedMbps = speed
+                    )
+                }
+            }
+        )
+    }
+
     fun startDownload(info: UpdateInfo) {
         downloadJob = viewModelScope.launch {
             try {
@@ -141,43 +177,31 @@ class UpdateViewModel @Inject constructor(
                     context, info
                 )
 
-                _state.value = UpdateState.Downloading(
-                    info = info,
-                    progress = 0f,
-                    downloadedMb = 0f,
-                    totalMb = initialPayload.sizeBytes / 1024f / 1024f,
-                    speedMbps = 0f
-                )
-
-                val apkFile = downloader.download(
-                    info = info,
-                    payload = initialPayload,
-                    onStatus = { status ->
-                        when (status) {
-                            "APPLYING" -> _state.value = UpdateState.Applying(info, "Processing update...")
-                            "VERIFYING" -> _state.value = UpdateState.Verifying(info, "Verifying update...")
-                            else -> {}
-                        }
-                    },
-                    onProgress = { progress, dlMb, totalMb, speed ->
-                        if (_state.value is UpdateState.Downloading) {
-                            _state.value = UpdateState.Downloading(
-                                info = info,
-                                progress = progress,
-                                downloadedMb = dlMb,
-                                totalMb = totalMb,
-                                speedMbps = speed
-                            )
-                        }
+                val apkFile = try {
+                    downloadWithPayload(info, initialPayload)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    if (initialPayload !is com.modulamobile.updater.DownloadPayload.FullApk) {
+                        android.util.Log.w("UPDATE", "Delta patch failed (${e.message}), falling back to Full APK", e)
+                        val fullApkPayload = com.modulamobile.updater.DownloadPayload.FullApk(
+                            url = info.apkUrl,
+                            sizeBytes = info.apkSizeBytes,
+                            sha256 = info.apkSha256,
+                            targetVersionCode = info.versionCode
+                        )
+                        downloadWithPayload(info, fullApkPayload)
+                    } else {
+                        throw e
                     }
-                )
+                }
 
                 _state.value = UpdateState.ReadyToInstall(info, apkFile)
 
             } catch (e: CancellationException) {
                 _state.value = UpdateState.Available(info)
             } catch (e: Exception) {
-                _state.value = UpdateState.Failed(info, e.message ?: "Delta update failed. Please try again or use the full update.")
+                _state.value = UpdateState.Failed(info, e.message ?: "Update failed. Please try again.")
             }
         }
     }
